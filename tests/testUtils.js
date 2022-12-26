@@ -3,6 +3,7 @@
 */
 import axios from 'axios';
 import jsonwebtoken from 'jsonwebtoken';
+import assert from 'node:assert';
 
 import Response from './Structures/Response.js';
 
@@ -81,7 +82,7 @@ function assertResponsesMatch(expectedResponse, actualResponse) {
 function assertJwtUsernameMatches(jwt, username) {
     try {
         let decoded = jsonwebtoken.decode(jwt);
-        if (decoded.payload.username !== username) return `Expected username and username in Jwt payload do not match.  Expected: ${username} Actual: ${decoded.payload.username}`;
+        if (decoded.username !== username) return `Expected username and username in Jwt payload do not match.  Expected: ${username} Actual: ${decoded.payload.username}`;
         return true;
     } catch (e) {
         return `Unable to decode Jwt: ${e.message}`;
