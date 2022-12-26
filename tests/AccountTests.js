@@ -23,7 +23,7 @@ async function test_Account_CreateAccount_Successful(servers, sharedData) {
 
     let account = new Account();
     account.username = `test_Account_CreateAccount_Successful_${randomUUID()}`;
-    account.password = "^&DADP)AS-sdsfsC*";
+    account.password = "^&DADP)AS-s3dsf5sC1*";
     // Send request
     let actualResponse = await testing.sendRequest(serverUrl, accountsEndpoint, testing.HTTP_METHODS.POST, testing.createBody(account));
 
@@ -65,7 +65,7 @@ async function test_Account_CreateAccount_UsernameNotUnique(servers, sharedData)
 
     let account = new Account();
     account.username = `test_Account_CreateAccount_UsernameNotUnique_${randomUUID}`;
-    account.password = `^&DADP)AS-sdsfsC*`;
+    account.password = `^&DADP)AS-s3dsf5sC1*`;
 
     let testResult = testing.assertResponseReceived(await testing.sendRequest(serverUrl, accountsEndpoint, testing.HTTP_METHODS.POST, testing.createBody(account)));
     if (testResult !== true) return testResult;
@@ -93,7 +93,7 @@ async function createAccount(servers, sharedData) {
 
     let account = new Account();
     account.username = `test_Account_${randomUUID()}`;
-    account.password = "^&DADP)AS-sdsfsC*";
+    account.password = "^&DADP)AS-s3dsf5sC1*";
 
     let response = await testing.sendRequest(serverUrl, accountsEndpoint, testing.HTTP_METHODS.POST, testing.createBody(account));
     
@@ -191,7 +191,7 @@ async function getSession(servers, sharedData) {
     let responseWith200Status = new Response();
     responseWith200Status.status = 200;
 
-    let responseCorrect= testing.assertResponseReceived(response);
+    let responseCorrect = testing.assertResponseReceived(response);
     if (responseCorrect !== true) {
         console.log(`Error: Failed to get session for account ${sharedData.account.username} for tests.  ${responseCorrect}`);
         return "TERMINATE";
@@ -240,15 +240,15 @@ async function tests_Account_SetPublicKey_Success(servers, sharedData) {
         testing.HTTP_METHODS.PUT, 
         testing.createBody({
             "public_key": publicKey
-        },
+        }),
         {
             Authorization: `Bearer ${sharedData.jwt}`
         }
-    ));
+    );
 
     let testResult = testing.assertResponseReceived(actualResponse);
     if (testResult !== true) return testResult;
-    testResult = testing.assertResponsesMatch(expectedResponse);
+    testResult = testing.assertResponsesMatch(expectedResponse, actualResponse);
 
     return testResult;
 }
@@ -290,7 +290,7 @@ async function tests_Account_SetPublicKey_ModifedToken(servers, sharedData) {
 
     let testResult = testing.assertResponseReceived(actualResponse);
     if (testResult !== true) return testResult;
-    testResult = testing.assertResponsesMatch(expectedResponse);
+    testResult = testing.assertResponsesMatch(expectedResponse, actualResponse);
 
     return testResult;
 }
@@ -299,7 +299,54 @@ async function tests_Account_SetPublicKey_ModifedToken(servers, sharedData) {
 let tests_Account_GetPublicKey = new TestSet(test_Account_GetPublicKey_UserNotFound, test_Account_GetPublicKey_NoPublicKey, test_Account_GetPublicKey_Success);
 tests_Account.push(tests_Account_GetPublicKey);
 
-tests_Account_GetPublicKey.runBeforeAll(createAccount);
+tests_Account_GetPublicKey.runBeforeAll(createAccount, getSession);
+
+/* async function setPublicKey(servers, sharedData) {
+    // Set public key for use in tests
+
+    let responseWith200Status = new Response();
+    responseWith200Status.status = 200;
+
+    // Generate key pair
+    let {publicKey, privateKey} = generateKeyPairSync("rsa", {
+        modulusLength: 4096,
+        publicKeyEncoding: {
+            type: "spki",
+            format: "pem"
+        },
+        privateKeyEncoding: {
+            type: "pkcs8",
+            format: "pem",
+            cipher: "aes-256-cbc",
+            passphrase: "secret"
+        }
+    });
+
+    let response = await testing.sendRequest(
+        serverUrl, 
+        `${accountsEndpoint}/${sharedData.account.username}`, 
+        testing.HTTP_METHODS.PUT, 
+        testing.createBody({
+            "public_key": publicKey
+        }),
+        {
+            Authorization: `Bearer ${sharedData.jwt}`
+        }
+    );
+
+    let responseCorrect = testing.assertResponseReceived(response);
+    if (responseCorrect !== true) {
+        console.log(`Error: Failed to set the public key for tests.  ${responseCorrect}`);
+        return "TERMINATE";
+    }
+    responseCorrect = testing.assertResponsesMatch(responseWith200Status, response);
+    if (responseCorrect !== true) {
+        console.log(`Error: Failed to set the public key for tests.  ${responseCorrect}`);
+        return "TERMINATE";
+    }
+
+    sharedData.publicKey = publicKey;
+} */
 
 async function test_Account_GetPublicKey_UserNotFound(servers, sharedData) {
     // Request the public key for a user that doesn't exist, and check response has UserNotFound code
@@ -361,11 +408,11 @@ async function test_Account_GetPublicKey_Success(servers, sharedData) {
         testing.HTTP_METHODS.PUT, 
         testing.createBody({
             "public_key": publicKey
-        },
+        }),
         {
             Authorization: `Bearer ${sharedData.jwt}`
         }
-    ));
+    );
 
     let testResult = testing.assertResponseReceived(response);
     if (testResult !== true) return testResult;
