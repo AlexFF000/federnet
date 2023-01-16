@@ -8,6 +8,7 @@
     If successful, tests should return true.  Else return a string saying why it failed
 */
 import {tests_Account, tests_Account_CreateAccount} from './accountTests.js';
+import { tests_Community, tests_Community_InfrastructureServer } from './CommunityTests.js';
 import TestSet from './Structures/TestSet.js';
 
 
@@ -80,6 +81,12 @@ function getInfoFromCmdArgs(args) {
                 break;
             case "tests_account_createaccount":
                 tests.push(tests_Account_CreateAccount);
+                break;
+            case "tests_community":
+                tests = tests.concat(tests_Community);
+                break;
+            case "tests_community_infrastructureserver":
+                tests = tests.concat(tests_Community_InfrastructureServer);
                 break;
         }
         info.tests = tests;

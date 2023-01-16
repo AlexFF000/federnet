@@ -18,4 +18,21 @@ class Account {
     }
 }
 
-export {Account};
+class Community {
+    name;
+    description;
+    address;
+
+    getDict() {
+        let fields = {};
+        if (name !== undefined) fields.name = this.name;
+        if (description !== undefined) fields.description = this.description;
+        if (address !== undefined) fields.address;
+        return fields;
+    }
+}
+
+export {
+    Account,
+    Community
+};
