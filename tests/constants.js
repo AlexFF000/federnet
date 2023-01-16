@@ -10,7 +10,7 @@ export const RESPONSE_CODES = {
     BadCredentials: 4,
     UserNotFound: 5,
     NoPublicKey: 6,
-    CommunityNameNotUnqiue: 7,
+    CommunityNameNotUnique: 7,
     UnsuitableAddress: 8,
     UnauthorisedCommunityRequest: 9,
     CommunityNotFound: 10,

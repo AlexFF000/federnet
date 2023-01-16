@@ -11,7 +11,8 @@ const HTTP_METHODS = {
     GET: 'get',
     POST: 'post',
     PUT: 'put',
-    DELETE: 'delete'
+    DELETE: 'delete',
+    PATCH: 'patch'
 };
 
 // Send request, and return a promise for an object representing the response.  If the test fails the object is still returned but with sentSuccessfully=false
@@ -98,6 +99,23 @@ function assertObjectsEqual(expected, actual) {
     }
 }
 
+function assertListContains(itemsList, item) {
+    // Assert that itemsList contains item as one of its elements
+    if (itemsList instanceof Array) {
+        for (let i of itemsList) {
+            try {
+                assert.deepStrictEqual(i, item);
+                // If the items match, then the item does exist in the list
+                return true;
+            } catch (e) {
+                continue;
+            }
+        }
+        // None of the items matched
+        return `Item is not present in itemsList`;
+    } else return `itemsList is not a list`;
+}
+
 
 export {
     HTTP_METHODS,
@@ -106,5 +124,6 @@ export {
     assertResponseReceived,
     assertResponsesMatch,
     assertJwtUsernameMatches,
-    assertObjectsEqual
+    assertObjectsEqual,
+    assertListContains
 }

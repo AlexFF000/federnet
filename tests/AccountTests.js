@@ -6,8 +6,8 @@ import {randomUUID, generateKeyPairSync} from 'crypto';
 import * as testing from './testUtils.js';
 import TestSet from './Structures/TestSet.js';
 import Response from './Structures/Response.js';
-import {Account} from './Structures/apiObjects.js';
-import {RESPONSE_CODES} from './constants.js';
+import { Account } from './Structures/apiObjects.js';
+import { RESPONSE_CODES } from './constants.js';
 
 const accountsEndpoint = "/accounts";
 
