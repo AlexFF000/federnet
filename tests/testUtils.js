@@ -49,6 +49,7 @@ async function sendRequest(server, endpoint, method, body, headers) {
 
 function createBody(dataObject, existingBody={}) {
     // Add the fields from this object to a body dict.  Overwrite existing fields if necessary
+    existingBody = Object.assign({}, existingBody);  // Shallow copy
     return Object.assign(existingBody, dataObject);
 }
 

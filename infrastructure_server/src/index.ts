@@ -7,6 +7,7 @@ import log from './log.js';
 import { MongoConnection } from './repository/MongoConnection.js';
 import { KeypairSingleton } from './KeypairSingleton.js';
 import accountRoutes from './route/accountRoutes.js';
+import communityRoutes from './route/communityRoutes.js';
 
 // Validate environment vars
 const port: number = process.env.PORT != undefined && !isNaN(parseInt(process.env.PORT))
@@ -24,5 +25,6 @@ log.info(`Starting server on port: ${port}`);
 const server = fastify();
 
 server.register(accountRoutes);
+server.register(communityRoutes);
 
 server.listen({ port: port });

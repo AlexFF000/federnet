@@ -12,8 +12,8 @@ class Account {
     getDict() {
         // Return a dict containing any fields that are not undefined
         let fields = {};
-        if (username !== undefined) fields.username = this.username;
-        if (password !== undefined) fields.password = this.password;
+        if (this.username !== undefined) fields.username = this.username;
+        if (this.password !== undefined) fields.password = this.password;
         return fields;
     }
 }
@@ -22,12 +22,14 @@ class Community {
     name;
     description;
     address;
+    publicKey;
 
     getDict() {
         let fields = {};
-        if (name !== undefined) fields.name = this.name;
-        if (description !== undefined) fields.description = this.description;
-        if (address !== undefined) fields.address;
+        if (this.name !== undefined) fields.name = this.name;
+        if (this.description !== undefined) fields.description = this.description;
+        if (this.address !== undefined) fields.address = this.address;
+        if (this.publicKey !== undefined) fields.publicKey = this.publicKey;
         return fields;
     }
 }
