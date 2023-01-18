@@ -6,7 +6,7 @@ import * as testing from './testUtils.js';
 import TestSet from './Structures/TestSet.js';
 import { RESPONSE_CODES } from './constants.js';
 import { Community } from './Structures/APIObjects.js';
-import { randomUUID, generateKeyPairSync, createHash, privateEncrypt, createPrivateKey } from 'crypto';
+import { randomUUID, generateKeyPairSync, createPrivateKey, createSign } from 'crypto';
 import express from 'express';
 import Response from './Structures/Response.js';
 
@@ -23,7 +23,7 @@ tests_Community_InfrastructureServer.push(tests_Community_InfrastructureServer_R
 function startMockCommunityServer(port, sharedData) {
     // Start a server that responds to community server Ping requests
     mockServer.get("/ping", (req, res) => {
-        res.code(200);  // 200 Ok
+        res.status(200);  // 200 Ok
         res.send({
             code: RESPONSE_CODES.Success,
             message: "Pong"
@@ -40,20 +40,31 @@ function stopMockCommunityServer(sharedData) {
 function signCommunityRequest(body, privateKey, privateKeyPassphrase) {
     // Generate a signature from the body of a community management request using the community's private key
 
-    // Calculate the SHA256 hash of the request body (converted to a JSON string)
-    let bodyJson = JSON.stringify(body);
-    let hash = createHash("sha256");
-    hash.update(bodyJson);
-    let digest = hash.digest("base64");
+    // Convert the body to a string in the exact format given by the specification
+    // Fields should be ordered by total Unicode value of keynames
+    let sortedKeys = Object.keys(body).sort();
+    // Fields should then be combined into a string in format: "<key name>:<value>,<key name>:<value>"
+    let bodyString = "";
+    for (let i in sortedKeys) {
+        let key = sortedKeys[i];
+        if (body[key] !== undefined) {
+            bodyString += `${key}:${body[key]}`;
+            // If not the last entry to be appended, add a comma
+            if (i < sortedKeys.length - 1) {
+                bodyString += ",";
+            }
+        }
+    }
 
-    // Encrypt the hash with the community's private key
-    let encryptedBuffer = privateEncrypt({
+    let privateKeyObject = createPrivateKey({
         key: privateKey,
-        passphrase: privateKeyPassphrase,
-        encoding: "utf8"
-    }, digest);
+        passphrase: privateKeyPassphrase
+    });
 
-    return encryptedBuffer.toString("base64");
+    let sign = createSign("RSA-SHA256");
+    sign.update(bodyString);
+
+    return sign.sign(privateKeyObject, "base64");
 }
 
 async function test_Community_RegisterCommunity_AddressWithoutPortSuccess(servers, sharedData) {
@@ -281,7 +292,7 @@ async function createCommunity(servers, sharedData) {
     let community = new Community();
     community.name = `test_Community_${randomUUID()}`;
     community.description = "This community was registered as part of an automated test";
-    community.address = `http://127.0.0.1:${sharedData.communityPort}`;
+    community.address = new URL(`http://127.0.0.1:${sharedData.communityPort}`).toString();
 
     // Generate key pair
     let {publicKey, privateKey} = generateKeyPairSync("rsa", {
@@ -297,6 +308,8 @@ async function createCommunity(servers, sharedData) {
             passphrase: "secret"
         }
     });
+
+    community.publicKey = publicKey;
 
     sharedData.communityPublicKey = publicKey;
     sharedData.communityPrivateKey = privateKey;
@@ -597,7 +610,7 @@ async function test_Community_GetCommunityInfo_Success(servers, sharedData) {
     if (testResult !== true) return testResult;
     testResult = testing.assertResponsesMatch(expectedResponse, actualResponse);
     if (testResult !== true) return testResult;
-    testResult = testing.assertListContains(actualResponse.body.data, sharedData.community);
+    testResult = testing.assertListContains(actualResponse.body.data, sharedData.community.getDict());
     if (testResult !== true) return testResult;
 
     return testResult;
@@ -742,21 +755,6 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
     // Add some communities and make sure they are in the list of returned communities
     let infraServerUrl = servers.infrastructureServer;
     
-    let community1 = new Community();
-    community1.name = `test_Community_FetchCommunities_Success_${randomUUID()}`;
-    community1.description = "This community was created as part of an automated test";
-    community1.address = `http://127.0.0.1:25580`;
-
-    let community2 = new Community();
-    community2.name = `test_Community_FetchCommunities_Success_${randomUUID()}`;
-    community2.description = "This community was created as part of an automated test";
-    community2.address = `http://127.0.0.1:25581`;
-
-    let community3 = new Community();
-    community3.name = `test_Community_FetchCommunities_Success_${randomUUID()}`;
-    community3.description = "This community was created as part of an automated test";
-    community3.address = `http://127.0.0.1:25582`;
-
     // Generate key pair
     let {publicKey, privateKey} = generateKeyPairSync("rsa", {
         modulusLength: 4096,
@@ -771,6 +769,24 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
             passphrase: "secret"
         }
     });
+
+    let community1 = new Community();
+    community1.name = `test_Community_FetchCommunities_Success_${randomUUID()}`;
+    community1.description = "This community was created as part of an automated test";
+    community1.address = new URL(`http://127.0.0.1:25580`).toString();
+    community1.publicKey = publicKey;
+
+    let community2 = new Community();
+    community2.name = `test_Community_FetchCommunities_Success_${randomUUID()}`;
+    community2.description = "This community was created as part of an automated test";
+    community2.address = new URL(`http://127.0.0.1:25581`).toString();
+    community2.publicKey = publicKey;
+
+    let community3 = new Community();
+    community3.name = `test_Community_FetchCommunities_Success_${randomUUID()}`;
+    community3.description = "This community was created as part of an automated test";
+    community3.address = new URL(`http://127.0.0.1:25582`).toString();
+    community3.publicKey = publicKey;
 
     let responseWith200Status = new Response();
     responseWith200Status.status = 200;
@@ -848,11 +864,11 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
     if (testResult !== true) return testResult;
     testResult = testing.assertResponsesMatch(expectedResponse, actualResponse);
     if (testResult !== true) return testResult;
-    testResult = testing.assertListContains(actualResponse.body.data, community1);
+    testResult = testing.assertListContains(actualResponse.body.data, community1.getDict());
     if (testResult !== true) return testResult;
-    testResult = testing.assertListContains(actualResponse.body.data, community2);
+    testResult = testing.assertListContains(actualResponse.body.data, community2.getDict());
     if (testResult !== true) return testResult;
-    testResult = testing.assertListContains(actualResponse, community3);
+    testResult = testing.assertListContains(actualResponse.body.data, community3.getDict());
     if (testResult !== true) return testResult;
 
     return testResult;
