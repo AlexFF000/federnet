@@ -59,6 +59,11 @@ function createUrl(server, endpoint) {
 
 // Assertion functions
 
+function assertValuesEqual(expected, actual) {
+    if (expected === actual) return true;
+    else return `Values are not equal.  Expected: ${expected} actual: ${actual}`;
+}
+
 function assertResponseReceived(response) {
     // Assert that the request was sent successfully, and a response was received
     if (response.sentSuccessfully) return true;
@@ -117,14 +122,27 @@ function assertListContains(itemsList, item) {
     } else return `itemsList is not a list`;
 }
 
+function assertListContainsMessage(messagesList, message) {
+    // Specialised version of assertListContains for messages.  Only checks the recipient username and message content, as the other fields won't be known by the sender
+    if (messagesList instanceof Array) {
+        for (let m of messagesList) {
+            if (m.recipientUsername === message.recipientUsername && m.content === message.content) return true;  // Found the correct message
+        }
+        // None of the messages matches
+        return `Message is not present in messagesList`;
+    } else return `messagesList is not a list`;
+}
+
 
 export {
     HTTP_METHODS,
     sendRequest,
     createBody,
+    assertValuesEqual,
     assertResponseReceived,
     assertResponsesMatch,
     assertJwtUsernameMatches,
     assertObjectsEqual,
-    assertListContains
+    assertListContains,
+    assertListContainsMessage
 }

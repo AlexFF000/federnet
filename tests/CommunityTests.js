@@ -4,15 +4,13 @@
 
 import * as testing from './testUtils.js';
 import TestSet from './Structures/TestSet.js';
-import { RESPONSE_CODES } from './constants.js';
+import { RESPONSE_CODES, infrastructureServerCommunitiesEndpoint } from './constants.js';
 import { Community } from './Structures/APIObjects.js';
 import { randomUUID, generateKeyPairSync, createPrivateKey, createSign } from 'crypto';
 import express from 'express';
 import Response from './Structures/Response.js';
 
 const mockServer = express();
-
-const infrastructureServerCommunitiesEndpoint = "/communities";
 
 let tests_Community_InfrastructureServer = [];
 let tests_Community = tests_Community_InfrastructureServer;

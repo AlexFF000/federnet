@@ -17,3 +17,8 @@ export const RESPONSE_CODES = {
     StaleRequest: 11,
     UnauthorisedUserRequest: 12
 }
+
+export const accountsEndpoint = "/accounts";
+export const sessionsEndpoint = "/sessions";
+export const infrastructureServerCommunitiesEndpoint = "/communities";
+export const directMessagesEndpoint = "/DirectMessages"
