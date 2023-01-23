@@ -34,7 +34,24 @@ class Community {
     }
 }
 
+class DirectMessage {
+    senderUsername;
+    recipientUsername;
+    content;
+    timestamp;
+
+    getDict() {
+        let fields = {};
+        if (this.senderUsername !== undefined) fields.senderUsername = this.senderUsername;
+        if (this.recipientUsername !== undefined) fields.recipientUsername = this.recipientUsername;
+        if (this.content !== undefined) fields.content = this.content;
+        if (this.timestamp !== undefined) fields.timestamp = this.timestamp;
+        return fields;
+    }
+}
+
 export {
     Account,
-    Community
+    Community,
+    DirectMessage
 };

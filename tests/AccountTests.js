@@ -1,15 +1,14 @@
 /*
     Test suite for testing account functionality
 */
-import {randomUUID, generateKeyPairSync} from 'crypto';
+import { randomUUID, generateKeyPairSync } from 'crypto';
 
 import * as testing from './testUtils.js';
 import TestSet from './Structures/TestSet.js';
 import Response from './Structures/Response.js';
 import { Account } from './Structures/apiObjects.js';
-import { RESPONSE_CODES } from './constants.js';
-
-const accountsEndpoint = "/accounts";
+import { RESPONSE_CODES, accountsEndpoint, sessionsEndpoint } from './constants.js';
+import { createAccount, getSession } from './helpers.js';
 
 let tests_Account_CreateAccount = new TestSet(test_Account_CreateAccount_Successful, test_Account_CreateAccount_PasswordComplexityNotMet, test_Account_CreateAccount_UsernameNotUnique);
 let tests_Account = [tests_Account_CreateAccount];
@@ -83,37 +82,9 @@ async function test_Account_CreateAccount_UsernameNotUnique(servers, sharedData)
 // GetSession tests
 let tests_Account_GetSession = new TestSet(test_Account_GetSession_Success, test_Account_GetSession_IncorrectUsername, test_Account_GetSession_IncorrectPassword);
 tests_Account.push(tests_Account_GetSession);
-const sessionsEndpoint = "/sessions";
 
 tests_Account_GetSession.runBeforeAll(createAccount);
 
-async function createAccount(servers, sharedData) {
-    let serverUrl = servers.infrastructureServer;
-    // Create an account for use in tests
-
-    let account = new Account();
-    account.username = `test_Account_${randomUUID()}`;
-    account.password = "^&DADP)AS-s3dsf5sC1*";
-
-    let response = await testing.sendRequest(serverUrl, accountsEndpoint, testing.HTTP_METHODS.POST, testing.createBody(account));
-    
-    let responseWith200Status = new Response();
-    responseWith200Status.status = 200;
-    
-    let responseCorrect = testing.assertResponseReceived(response);
-    if (responseCorrect !== true) {
-        console.log(`Error: Failed to create account: ${account.username} for tests.  ${responseCorrect}`);
-        return "TERMINATE";
-    }
-    responseCorrect = testing.assertResponsesMatch(responseWith200Status, response);
-    if (responseCorrect !== true) {
-        console.log(`Error: Failed to create account ${account.username} for tests.  ${responseCorrect}`);
-        return "TERMINATE";
-    }
-
-    // Write account to sharedData for use in the tests
-    sharedData.account = account;
-}
 
 async function test_Account_GetSession_Success(servers, sharedData) {
     // Log into the account with the correct credentials, and check that a valid JWT is received
@@ -181,35 +152,6 @@ let tests_Account_SetPublicKey = new TestSet(tests_Account_SetPublicKey_Success,
 tests_Account.push(tests_Account_SetPublicKey);
 
 tests_Account_SetPublicKey.runBeforeAll(createAccount, getSession);
-
-async function getSession(servers, sharedData) {
-    // Get a session token for an account to be used in tests
-    let serverUrl = servers.infrastructureServer;
-
-    let response = await testing.sendRequest(serverUrl, sessionsEndpoint, testing.HTTP_METHODS.POST, testing.createBody(sharedData.account));
-
-    let responseWith200Status = new Response();
-    responseWith200Status.status = 200;
-
-    let responseCorrect = testing.assertResponseReceived(response);
-    if (responseCorrect !== true) {
-        console.log(`Error: Failed to get session for account ${sharedData.account.username} for tests.  ${responseCorrect}`);
-        return "TERMINATE";
-    }
-    responseCorrect = testing.assertResponsesMatch(responseWith200Status, response);
-    if (responseCorrect !== true) {
-        console.log(`Error: Failed to get session for account ${sharedData.account.username} for tests.  ${responseCorrect}`);
-        return "TERMINATE";
-    }
-
-    try {
-        sharedData.jwt = response.body.data[0];
-    } catch (e) {
-        console.log(`Error: Unable to get Jwt from response body for account ${sharedData.account.username} for tests. ${e}`);
-        return "TERMINATE";
-    }
-
-}
 
 async function tests_Account_SetPublicKey_Success(servers, sharedData) {
     // Set account public key, and check response has Success code
@@ -284,7 +226,7 @@ async function tests_Account_SetPublicKey_ModifedToken(servers, sharedData) {
             "public_key": publicKey
         },
         {
-            Authorization: `Bearer ${sharedData.jwt.substr(0, Math.floor(sharedData.jwt.length / 2))} a ${sharedData.jwt.substr(Math.floor(sharedData.jwt.length / 2))}`  // Add an extra letter "a" in the middle of the token string
+            Authorization: `Bearer ${sharedData.jwt.substr(0, Math.floor(sharedData.jwt.length / 2))}a${sharedData.jwt.substr(Math.floor(sharedData.jwt.length / 2))}`  // Add an extra letter "a" in the middle of the token string
         }
     ));
 
@@ -300,53 +242,6 @@ let tests_Account_GetPublicKey = new TestSet(test_Account_GetPublicKey_UserNotFo
 tests_Account.push(tests_Account_GetPublicKey);
 
 tests_Account_GetPublicKey.runBeforeAll(createAccount, getSession);
-
-/* async function setPublicKey(servers, sharedData) {
-    // Set public key for use in tests
-
-    let responseWith200Status = new Response();
-    responseWith200Status.status = 200;
-
-    // Generate key pair
-    let {publicKey, privateKey} = generateKeyPairSync("rsa", {
-        modulusLength: 4096,
-        publicKeyEncoding: {
-            type: "spki",
-            format: "pem"
-        },
-        privateKeyEncoding: {
-            type: "pkcs8",
-            format: "pem",
-            cipher: "aes-256-cbc",
-            passphrase: "secret"
-        }
-    });
-
-    let response = await testing.sendRequest(
-        serverUrl, 
-        `${accountsEndpoint}/${sharedData.account.username}`, 
-        testing.HTTP_METHODS.PUT, 
-        testing.createBody({
-            "public_key": publicKey
-        }),
-        {
-            Authorization: `Bearer ${sharedData.jwt}`
-        }
-    );
-
-    let responseCorrect = testing.assertResponseReceived(response);
-    if (responseCorrect !== true) {
-        console.log(`Error: Failed to set the public key for tests.  ${responseCorrect}`);
-        return "TERMINATE";
-    }
-    responseCorrect = testing.assertResponsesMatch(responseWith200Status, response);
-    if (responseCorrect !== true) {
-        console.log(`Error: Failed to set the public key for tests.  ${responseCorrect}`);
-        return "TERMINATE";
-    }
-
-    sharedData.publicKey = publicKey;
-} */
 
 async function test_Account_GetPublicKey_UserNotFound(servers, sharedData) {
     // Request the public key for a user that doesn't exist, and check response has UserNotFound code
