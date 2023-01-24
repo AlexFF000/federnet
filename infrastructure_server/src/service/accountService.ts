@@ -37,6 +37,10 @@ export async function createAccount(account: Account): Promise<string> {
     }
 }
 
+export function getAccount(username: string): Promise<Account | null> {
+    return accountRepository.getAccount(username);
+}
+
 export async function getSession(account: Account): Promise<string> {
     try {
         // Get the account matching that username

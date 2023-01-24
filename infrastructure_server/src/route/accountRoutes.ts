@@ -11,6 +11,7 @@ import Account from '../model/Account.js';
 import Response from '../model/Response.js';
 import * as accountService from '../service/accountService.js';
 import { RESPONSE_CODES } from '../constants.js';
+import { authHeader, authoriseAccountRequest, tokenUsernameParam } from './accountAuthorisation.js';
 
 const accountsEndpoint : string = "/accounts";
 const sessionsEndpoint = "/sessions";
@@ -20,16 +21,17 @@ const usernameAndPasswordAccountBody = Type.Object({
     password: Type.String()
 });
 const publicKeyBody = Type.Object({
-    public_key: Type.String()
+    publicKey: Type.String()
 });
 const usernameParam = Type.Object({
     username: Type.String()
-})
+});
+
 
 const bearerRegex = new RegExp("^Bearer ");
 
 export default (server: FastifyInstance , opts: FastifyPluginOptions, done: CallableFunction) => {
-    server.withTypeProvider<TypeBoxTypeProvider>()
+    server.withTypeProvider<TypeBoxTypeProvider>();
 
     // CreateAccount
     server.post<{Body: Static<typeof usernameAndPasswordAccountBody>}>(accountsEndpoint, {
@@ -99,39 +101,29 @@ export default (server: FastifyInstance , opts: FastifyPluginOptions, done: Call
     });
 
     // SetPublicKey
-    server.put<{Body: Static<typeof publicKeyBody>}>(`${accountsEndpoint}/:username`, {
+    server.put<{Body: Static<typeof publicKeyBody>, Params: Static<typeof tokenUsernameParam>, Headers: Static<typeof authHeader>}>(`${accountsEndpoint}/:username`, {
         schema: {
-            body: publicKeyBody
-        }
+            headers: authHeader,
+            body: publicKeyBody,
+            params: tokenUsernameParam
+        },
+        preHandler: authoriseAccountRequest
     }, async (req, res) => {
         log.debug("Received SetPublicKey request");
         let response: Response;
-        // Check that authorization header is provided
-        if (req.headers.authorization === undefined || !bearerRegex.test(req.headers.authorization)) {
-            response = new Response(RESPONSE_CODES.UnauthorisedUserRequest, "User is not authorised");
-            res.code(401);
+        
+        let username = "";
+        if (req.params.tokenUsername) username = req.params.tokenUsername;  // This will always be true, its just here to satisfy TypeScript as part of our dirty params bodge in authoriseAccountRequest
+        let account = new Account(username);
+        account.publicKey = req.body.publicKey;
+        let result = await accountService.setPublicKey(account);
+
+        if (result === "Success") {
+            response = new Response(RESPONSE_CODES.Success, "Successfully set public key");
+            res.code(200);
         } else {
-            // Extract token part of authorization header (i.e. remove the bit that says "Bearer ")
-            let token = req.headers.authorization.substring(7);
-            let payload = await accountService.verifySession(token);
-            if (typeof payload !== "boolean") {
-                // Token is legitimate
-                let account = new Account(payload.username);
-                account.publicKey = req.body.public_key;
-                let result = await accountService.setPublicKey(account);
-
-                if (result === "Success") {
-                    response = new Response(RESPONSE_CODES.Success, "Successfully set public key");
-                    res.code(200);
-                } else {
-                    response = new Response(RESPONSE_CODES.GenericFailure, "Something went wrong while setting public key");
-                    res.code(500);
-                }
-
-            } else {
-                response = new Response(RESPONSE_CODES.UnauthorisedUserRequest, "User is not authorised");
-                res.code(401);
-            }
+            response = new Response(RESPONSE_CODES.GenericFailure, "Something went wrong while setting public key");
+            res.code(500);
         }
 
         res.send(response);

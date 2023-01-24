@@ -100,7 +100,7 @@ async function test_Community_RegisterCommunity_AddressWithoutPortSuccess(server
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community)
     );
@@ -150,7 +150,7 @@ async function test_Community_RegisterCommunity_AddressWithPortSuccess(servers, 
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community)
     );
@@ -199,7 +199,7 @@ async function test_Community_RegisterCommunity_UnsuitableAddress(servers, share
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         }, 
         community)
     );
@@ -247,7 +247,7 @@ async function test_Community_RegisterCommunity_CommunityNameNotUnique(servers, 
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community)
     ));
@@ -259,7 +259,7 @@ async function test_Community_RegisterCommunity_CommunityNameNotUnique(servers, 
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community)
     );
@@ -321,7 +321,7 @@ async function createCommunity(servers, sharedData) {
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         }, 
         community)
     );
@@ -467,7 +467,7 @@ async function test_Community_UpdateCommunity_CommunityNameNotUnique(servers, sh
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         }, 
         community)
     ));
@@ -796,7 +796,7 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community1)
     );
@@ -815,7 +815,7 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community2)
     );
@@ -834,7 +834,7 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
         infrastructureServerCommunitiesEndpoint,
         testing.HTTP_METHODS.POST,
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         },
         community3)
     );

@@ -13,7 +13,7 @@ import { publicEncrypt, randomUUID } from 'crypto';
 let tests_DirectMessage = [];
 
 // SendDirectMessage tests
-let tests_DirectMessage_SendDirectMessage = new TestSet(tests_DirectMessage_SendDirectMessage_UnauthorisedUserRequest, test_DirectMessage_SendDirectMessage_UserNotFound, test_DirectMessage_SendDirectMessage_Success);
+let tests_DirectMessage_SendDirectMessage = new TestSet(tests_DirectMessage_SendDirectMessage_UnauthorisedUserRequest, test_DirectMessage_SendDirectMessage_UserNotFound, test_DirectMessage_SendDirectMessage_NoPublicKey, test_DirectMessage_SendDirectMessage_Success);
 tests_DirectMessage.push(tests_DirectMessage_SendDirectMessage);
 
 tests_DirectMessage_SendDirectMessage.runBeforeEach(createAccount);  // Create an account to send the message to
@@ -22,7 +22,7 @@ function encryptMessageContent(content, publicKey) {
     // Encrypt message content using the given public key
     return publicEncrypt({
         key: publicKey
-    }, content);
+    }, content).toString("base64");
 }
 
 async function tests_DirectMessage_SendDirectMessage_UnauthorisedUserRequest(servers, sharedData) {
@@ -109,6 +109,45 @@ async function test_DirectMessage_SendDirectMessage_UserNotFound(servers, shared
     return testResult;
 }
 
+async function test_DirectMessage_SendDirectMessage_NoPublicKey(servers, sharedData) {
+    let infraServerUrl = servers.infrastructureServer;
+
+    let recipient = sharedData.account;
+    
+
+    // Create message
+    let textContent = "This message was generated as part of an automated test, test_DirectMessage_SendDirectMessage_NoPublicKey";
+
+    let message = new DirectMessage();
+    message.content = textContent;
+    message.recipientUsername = recipient.username;
+
+    // Create an account to use as sender
+    await createAccount(servers, sharedData);
+    await getSession(servers, sharedData);
+
+    let expectedResponse = new Response();
+    expectedResponse.status = 403;  // 403 Forbidden
+    expectedResponse.body.code = RESPONSE_CODES.NoPublicKey;
+
+    let actualResponse = await testing.sendRequest(
+        infraServerUrl,
+        directMessagesEndpoint,
+        testing.HTTP_METHODS.POST,
+        testing.createBody(message),
+        {
+            "Authorization": `Bearer ${sharedData.jwt}`
+        }
+    );
+
+    let testResult = testing.assertResponseReceived(actualResponse);
+    if (testResult !== true) return testResult;
+    testResult = testing.assertResponsesMatch(expectedResponse, actualResponse);
+    if (testResult !== true) return testResult;
+
+    return testResult;
+}
+
 async function test_DirectMessage_SendDirectMessage_Success(servers, sharedData) {
     let infraServerUrl = servers.infrastructureServer;
 
@@ -161,7 +200,7 @@ function sleep(seconds) {
         But the message timestamps are generated on the server side so the only way to get the timestamps we want is to actually wait an appropriate amount of time
     */
     // Sleep for a while
-    console.log(`NOTE: A blocking sleep is about to start for ${seconds}`);
+    console.log(`NOTE: A blocking sleep is about to start for ${seconds} seconds`);
     let stopTime = Math.floor(Date.now() / 1000) + seconds;
     while (Math.floor(Date.now() / 1000) < stopTime) {
         continue;
@@ -208,7 +247,7 @@ async function sendDirectMessage(servers, sharedData, recipient, recipientPublic
 async function test_DirectMessage_FetchDirectMessages_UnauthorisedUserRequest(servers, sharedData) {
     let infraServerUrl = servers.infrastructureServer;
 
-
+    await createAccount(servers, sharedData);
     await getSession(servers, sharedData);
     // Modify JWT to be in the correct format but invalid
     let modifiedJwt = `${sharedData.jwt.substr(0, Math.floor(sharedData.jwt.length / 2))}a${sharedData.jwt.substr(Math.floor(sharedData.jwt.length / 2))}`; // Add an extra letter "a" in the middle of the token string
@@ -246,6 +285,7 @@ async function test_DirectMessage_FetchDirectMessages_All(servers, sharedData) {
     // Create a recipient
     await createAccount(servers, sharedData);
     let recipient = sharedData.account;
+    await getSession(servers, sharedData);
     await setPublicKey(servers, sharedData);
     let recipientPublicKey = sharedData.accountPublicKey;
 
@@ -302,12 +342,13 @@ async function test_DirectMessage_FetchDirectMessages_BeforeTime(servers, shared
     // Create a recipient
     await createAccount(servers, sharedData);
     let recipient = sharedData.account;
+    await getSession(servers, sharedData);
     await setPublicKey(servers, sharedData);
     let recipientPublicKey = sharedData.accountPublicKey;
 
     // Send first 5 messages
     let firstMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         firstMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
 
@@ -316,7 +357,7 @@ async function test_DirectMessage_FetchDirectMessages_BeforeTime(servers, shared
     sleep(10);
     
     let lastMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         lastMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
 
@@ -368,21 +409,23 @@ async function test_DirectMessage_FetchDirectMessages_AfterTime(servers, sharedD
     // Create a recipient
     await createAccount(servers, sharedData);
     let recipient = sharedData.account;
+    await getSession(servers, sharedData);
     await setPublicKey(servers, sharedData);
     let recipientPublicKey = sharedData.accountPublicKey;
 
     // Send first 5 messages
     let firstMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         firstMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
 
     // Wait 10 seconds, and then send the next 5 messages
-    let timerStart = Math.floor(Date.now() / 1000);
-    sleep(10);
     
+    sleep(10);
+    let timerEnd = Math.floor(Date.now() / 1000);
+
     let lastMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         lastMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
 
@@ -403,7 +446,7 @@ async function test_DirectMessage_FetchDirectMessages_AfterTime(servers, sharedD
         {},
         {
             "Authorization": `Bearer ${jwt}`,
-            "Start-Time": timerStart
+            "Start-Time": timerEnd
         }
     );
 
@@ -414,7 +457,7 @@ async function test_DirectMessage_FetchDirectMessages_AfterTime(servers, sharedD
 
     // Check if all the messages were returned
     for (let message of lastMessages) {
-        testResult = testing.assertValuesEqual(lastMessages.length, actualResponse.body.data.length)
+        testResult = testing.assertValuesEqual(lastMessages.length, actualResponse.body.data.length);
         if (testResult !== true) return testResult;
         testResult = testing.assertListContainsMessage(actualResponse.body.data, message);
         if (testResult !== true) return testResult;
@@ -433,30 +476,31 @@ async function test_DirectMessage_FetchDirectMessages_BetweenTimes(servers, shar
     // Create a recipient
     await createAccount(servers, sharedData);
     let recipient = sharedData.account;
+    await getSession(servers, sharedData);
     await setPublicKey(servers, sharedData);
     let recipientPublicKey = sharedData.accountPublicKey;
 
     // Send first 5 messages
     let firstMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         firstMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
 
     // Wait 10 seconds, and then send the next 5 messages
-    let firstTimerStart = Math.floor(Date.now() / 1000);
+    let firstTimerStart = Math.floor(Date.now() / 1000) + 1;  // Add 1 to make sure none of the firstMessages share the same timestamp due to occuring during the same second
     sleep(10);
     
     let middleMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         middleMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
 
     // Wait another 10 seconds, and then send the last 5 messages
-    let secondTimerStart = Math.floor(Date.now() / 1000);
+    let secondTimerStart = Math.ceil(Date.now() / 1000);
     sleep(10);
 
     let lastMessages = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
         lastMessages.push(await sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender));
     }
     

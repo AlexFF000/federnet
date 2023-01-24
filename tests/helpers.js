@@ -93,7 +93,7 @@ export async function setPublicKey(servers, sharedData) {
         `${accountsEndpoint}/${sharedData.account.username}`, 
         testing.HTTP_METHODS.PUT, 
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         }),
         {
             Authorization: `Bearer ${sharedData.jwt}`

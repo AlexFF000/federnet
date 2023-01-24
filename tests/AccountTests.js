@@ -181,7 +181,7 @@ async function tests_Account_SetPublicKey_Success(servers, sharedData) {
         `${accountsEndpoint}/${sharedData.account.username}`, 
         testing.HTTP_METHODS.PUT, 
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         }),
         {
             Authorization: `Bearer ${sharedData.jwt}`
@@ -223,12 +223,12 @@ async function tests_Account_SetPublicKey_ModifedToken(servers, sharedData) {
         `${accountsEndpoint}/${sharedData.account.username}`, 
         testing.HTTP_METHODS.PUT, 
         testing.createBody({
-            "public_key": publicKey
-        },
+            "publicKey": publicKey
+        }),
         {
             Authorization: `Bearer ${sharedData.jwt.substr(0, Math.floor(sharedData.jwt.length / 2))}a${sharedData.jwt.substr(Math.floor(sharedData.jwt.length / 2))}`  // Add an extra letter "a" in the middle of the token string
         }
-    ));
+    );
 
     let testResult = testing.assertResponseReceived(actualResponse);
     if (testResult !== true) return testResult;
@@ -302,7 +302,7 @@ async function test_Account_GetPublicKey_Success(servers, sharedData) {
         `${accountsEndpoint}/${sharedData.account.username}`, 
         testing.HTTP_METHODS.PUT, 
         testing.createBody({
-            "public_key": publicKey
+            "publicKey": publicKey
         }),
         {
             Authorization: `Bearer ${sharedData.jwt}`

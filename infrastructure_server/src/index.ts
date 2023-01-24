@@ -8,6 +8,7 @@ import { MongoConnection } from './repository/MongoConnection.js';
 import { KeypairSingleton } from './KeypairSingleton.js';
 import accountRoutes from './route/accountRoutes.js';
 import communityRoutes from './route/communityRoutes.js';
+import directMessageRoutes from './route/directMessageRoutes.js';
 
 // Validate environment vars
 const port: number = process.env.PORT != undefined && !isNaN(parseInt(process.env.PORT))
@@ -26,5 +27,6 @@ const server = fastify();
 
 server.register(accountRoutes);
 server.register(communityRoutes);
+server.register(directMessageRoutes);
 
 server.listen({ port: port });
