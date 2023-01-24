@@ -18,14 +18,14 @@ const communityAllFieldsBody = Type.Object({
     name: Type.String(),
     description: Type.String(),
     address: Type.String(),
-    public_key: Type.String()
+    publicKey: Type.String()
 });
 
 const updateCommunityBody = Type.Object({
     name: Type.Optional(Type.String()),
     description: Type.Optional(Type.String()),
     address: Type.Optional(Type.String()),
-    public_key: Type.Optional(Type.String()),
+    publicKey: Type.Optional(Type.String()),
     timestamp: Type.Integer(),
     signature: Type.String()
 });
@@ -53,7 +53,7 @@ export default (server: FastifyInstance, opts: FastifyPluginOptions, done: Calla
 
             // Use URL class to check if the URL is in a valid format, otherwise TypeError will be thrown
             community.address = new URL(req.body.address).toString();
-            community.publicKey = req.body.public_key;
+            community.publicKey = req.body.publicKey;
 
             let result: string = await communityService.registerCommunity(community);
 
@@ -101,7 +101,7 @@ export default (server: FastifyInstance, opts: FastifyPluginOptions, done: Calla
         if (req.body.name !== undefined) community.name = req.body.name;
         if (req.body.description !== undefined) community.description = req.body.description;
         if (req.body.address !== undefined) community.address = req.body.address;
-        if (req.body.public_key !== undefined) community.publicKey = req.body.public_key;
+        if (req.body.publicKey !== undefined) community.publicKey = req.body.publicKey;
 
         let result: string = await communityService.updateCommunity(req.params.communityName, community);
         let response: Response;
@@ -217,5 +217,6 @@ async function authoriseCommunityRequest(req: FastifyRequest<{Params: Static<typ
         res.hijack();
     }
     
-    done();
+    // Just return instead of calling done(), otherwise handler will run twice (seems to be strange behaviour with fastify when mixing async and callbacks in hooks)
+    return;
 }
