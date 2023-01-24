@@ -2,6 +2,7 @@
     Functions for use in API tests
 */
 import axios from 'axios';
+import { Agent } from 'https';
 import jsonwebtoken from 'jsonwebtoken';
 import assert from 'node:assert';
 
@@ -22,7 +23,10 @@ async function sendRequest(server, endpoint, method, body, headers) {
             "method": method,
             "url": createUrl(server, endpoint),
             "headers": headers,
-            "data": body
+            "data": body,
+            "httpsAgent": new Agent({
+                rejectUnauthorized: false,  // Allow self signed SSL certificates
+            })
         });
         let responseObject = new Response();
         responseObject.status = response.status;

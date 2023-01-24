@@ -92,6 +92,9 @@ function getInfoFromCmdArgs(args) {
             case "tests_directmessage":
                 tests = tests.concat(tests_DirectMessage);
                 break;
+            case "all":
+                tests = tests.concat(tests_Account, tests_Community, tests_DirectMessage);
+                break;
         }
         info.tests = tests;
 
