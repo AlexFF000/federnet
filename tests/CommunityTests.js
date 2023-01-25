@@ -4,7 +4,7 @@
 
 import * as testing from './testUtils.js';
 import TestSet from './Structures/TestSet.js';
-import { RESPONSE_CODES, infrastructureServerCommunitiesEndpoint } from './constants.js';
+import { RESPONSE_CODES, infrastructureServerCommunitiesEndpoint, communityServerPingEndpoint } from './constants.js';
 import { Community } from './Structures/APIObjects.js';
 import { randomUUID, generateKeyPairSync, createPrivateKey, createSign } from 'crypto';
 import express from 'express';
@@ -13,7 +13,6 @@ import Response from './Structures/Response.js';
 const mockServer = express();
 
 let tests_Community_InfrastructureServer = [];
-let tests_Community = tests_Community_InfrastructureServer;
 
 let tests_Community_InfrastructureServer_RegisterCommunity = new TestSet(test_Community_RegisterCommunity_AddressWithoutPortSuccess, test_Community_RegisterCommunity_AddressWithPortSuccess, test_Community_RegisterCommunity_UnsuitableAddress, test_Community_RegisterCommunity_CommunityNameNotUnique);
 tests_Community_InfrastructureServer.push(tests_Community_InfrastructureServer_RegisterCommunity);
@@ -871,6 +870,40 @@ async function test_Community_FetchCommunities_Success(servers, sharedData) {
 
     return testResult;
 }
+
+// Community Server tests
+
+let tests_Community_CommunityServer = [];
+
+// Community Server Ping tests
+let tests_Community_CommunityServer_Ping = new TestSet(test_Community_Ping);
+tests_Community_CommunityServer.push(tests_Community_CommunityServer_Ping);
+
+async function test_Community_Ping(servers, sharedData) {
+    let comServerUrl = servers.communityServer;
+
+    // Send ping request to Community Server and check response is in the expected format
+    let expectedResponse = new Response();
+    expectedResponse.status = 200;  // 200 Ok
+    expectedResponse.body.code = RESPONSE_CODES.Success;
+    expectedResponse.body.message = "Pong";
+
+    let actualResponse = await testing.sendRequest(
+        comServerUrl,
+        communityServerPingEndpoint,
+        testing.HTTP_METHODS.GET,
+    );
+
+    let testResult = testing.assertResponseReceived(actualResponse);
+    if (testResult !== true) return testResult;
+    testResult = testing.assertResponsesMatch(expectedResponse, actualResponse);
+    if (testResult !== true) return testResult;
+
+    return testResult;
+}
+
+let tests_Community = tests_Community_InfrastructureServer.concat(tests_Community_CommunityServer);
+
 export {
     tests_Community,
     tests_Community_InfrastructureServer,
@@ -878,5 +911,7 @@ export {
     tests_Community_InfrastructureServer_UpdateCommunity,
     tests_Community_InfrastructureServer_GetCommunityInfo,
     tests_Community_InfrastructureServer_RemoveCommunity,
-    tests_Community_InfrastructureServer_FetchCommunities
+    tests_Community_InfrastructureServer_FetchCommunities,
+    tests_Community_CommunityServer,
+    tests_Community_CommunityServer_Ping
 }

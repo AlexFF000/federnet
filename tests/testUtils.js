@@ -132,9 +132,28 @@ function assertListContainsMessage(messagesList, message) {
         for (let m of messagesList) {
             if (m.recipientUsername === message.recipientUsername && m.content === message.content) return true;  // Found the correct message
         }
-        // None of the messages matches
+        // None of the messages match
         return `Message is not present in messagesList`;
     } else return `messagesList is not a list`;
+}
+
+function assertListContainsPost(postsList, post) {
+    // Specialised version of assertListContains for posts.  Only checks the poster username and post content, as the other fields won't be known by the sender
+    if (postsList instanceof Array) {
+        for (let p of postsList) {
+            if (p.posterUsername === post.posterUsername && p.content === post.content) return true;  // Found the correct post
+        }
+        // None of the posts match
+        return `Post is not present in postsList`;
+    } else return `postsList is not a list`;
+}
+
+function assertListNotContainsPost(postsList, post) {
+    // Inverted version of assertListContainsPost.  Returns true if the list does not contain the post
+    if (postsList instanceof Array) {
+        if (assertListContainsPost(postsList, post) === true) return `Post is present in postsList`;
+        else return true;
+    } else return `postsList is not a list`;
 }
 
 
@@ -148,5 +167,7 @@ export {
     assertJwtUsernameMatches,
     assertObjectsEqual,
     assertListContains,
-    assertListContainsMessage
+    assertListContainsMessage,
+    assertListContainsPost,
+    assertListNotContainsPost
 }

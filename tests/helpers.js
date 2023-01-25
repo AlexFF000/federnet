@@ -114,3 +114,17 @@ export async function setPublicKey(servers, sharedData) {
     sharedData.accountPublicKey = publicKey;
     sharedData.accountPrivateKey = privateKey;
 }
+
+export function sleep(seconds) {
+    /* 
+        I know blocking the main thread is bad, don't worry I feel a suitable amount of shame for doing it.
+        But the message timestamps are generated on the server side so the only way to get the timestamps we want is to actually wait an appropriate amount of time
+    */
+    // Sleep for a while
+    console.log(`NOTE: A blocking sleep is about to start for ${seconds} seconds`);
+    let stopTime = Math.floor(Date.now() / 1000) + seconds;
+    while (Math.floor(Date.now() / 1000) < stopTime) {
+        continue;
+    }
+    console.log(`NOTE: The blocking sleep has woken up`);
+}
