@@ -10,6 +10,7 @@
 import {tests_Account, tests_Account_CreateAccount} from './accountTests.js';
 import { tests_Community, tests_Community_InfrastructureServer } from './CommunityTests.js';
 import { tests_DirectMessage } from './DirectMessageTests.js';
+import { tests_Post } from './PostTests.js';
 import TestSet from './Structures/TestSet.js';
 
 
@@ -92,8 +93,11 @@ function getInfoFromCmdArgs(args) {
             case "tests_directmessage":
                 tests = tests.concat(tests_DirectMessage);
                 break;
+            case "tests_post":
+                tests = tests.concat(tests_Post);
+                break;
             case "all":
-                tests = tests.concat(tests_Account, tests_Community, tests_DirectMessage);
+                tests = tests.concat(tests_Account, tests_Community, tests_DirectMessage, tests_Post);
                 break;
         }
         info.tests = tests;

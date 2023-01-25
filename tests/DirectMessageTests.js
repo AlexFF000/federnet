@@ -6,7 +6,7 @@ import * as testing from './testUtils.js';
 import TestSet from './Structures/TestSet.js';
 import { directMessagesEndpoint, RESPONSE_CODES } from './constants.js';
 import Response from './Structures/Response.js';
-import { createAccount, getSession, setPublicKey } from './helpers.js';
+import { createAccount, getSession, setPublicKey, sleep } from './helpers.js';
 import { DirectMessage } from './Structures/apiObjects.js';
 import { publicEncrypt, randomUUID } from 'crypto';
 
@@ -193,20 +193,6 @@ async function test_DirectMessage_SendDirectMessage_Success(servers, sharedData)
 // FetchDirectMessages tests
 let tests_DirectMessage_FetchDirectMessages = new TestSet(test_DirectMessage_FetchDirectMessages_UnauthorisedUserRequest, test_DirectMessage_FetchDirectMessages_All, test_DirectMessage_FetchDirectMessages_BeforeTime, test_DirectMessage_FetchDirectMessages_AfterTime, test_DirectMessage_FetchDirectMessages_BetweenTimes);
 tests_DirectMessage.push(tests_DirectMessage_FetchDirectMessages);
-
-function sleep(seconds) {
-    /* 
-        I know blocking the main thread is bad, don't worry I feel a suitable amount of shame for doing it.
-        But the message timestamps are generated on the server side so the only way to get the timestamps we want is to actually wait an appropriate amount of time
-    */
-    // Sleep for a while
-    console.log(`NOTE: A blocking sleep is about to start for ${seconds} seconds`);
-    let stopTime = Math.floor(Date.now() / 1000) + seconds;
-    while (Math.floor(Date.now() / 1000) < stopTime) {
-        continue;
-    }
-    console.log(`NOTE: The blocking sleep has woken up`);
-}
 
 async function sendDirectMessage(servers, sharedData, recipient, recipientPublicKey, sender) {
     // Send a DM for use in tests

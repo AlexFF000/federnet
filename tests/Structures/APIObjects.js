@@ -50,6 +50,20 @@ class DirectMessage {
     }
 }
 
+export class Post {
+    posterUsername;
+    content;
+    timestamp;
+
+    getDict() {
+        let fields = {};
+        if (this.posterUsername !== undefined) fields.posterUsername = this.posterUsername;
+        if (this.content !== undefined) fields.content = this.content;
+        if (this.timestamp !== undefined) fields.timestamp = this.timestamp;
+        return fields;
+    }
+}
+
 export {
     Account,
     Community,
