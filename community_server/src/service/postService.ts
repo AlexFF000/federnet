@@ -12,3 +12,7 @@ export async function createPost(post: Post) {
         return "GenericFailure";
     }
 }
+
+export async function fetchPosts(startTime: number, endTime: number): Promise<Post[]> {
+    return postRepository.getPosts(startTime, endTime);
+}

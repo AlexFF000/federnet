@@ -16,6 +16,12 @@ const createPostBody = Type.Object({
     content: Type.String()
 });
 
+const fetchPostsHeaders = Type.Object({
+    "Authorization": Type.String(),
+    "start-time": Type.Integer(),
+    "end-time": Type.Optional(Type.Integer())
+});
+
 export default (server: FastifyInstance, opts: FastifyPluginOptions, done: CallableFunction) => {
     server.withTypeProvider<TypeBoxTypeProvider>();
 
@@ -37,6 +43,21 @@ export default (server: FastifyInstance, opts: FastifyPluginOptions, done: Calla
         }
 
         res.send(response);
+    });
+
+    // FetchPosts
+    server.get<{Headers: Static<typeof fetchPostsHeaders>, Params: Static<typeof tokenUsernameParam>}>(postsEndpoint, {
+        preHandler: authoriseRequestJwt
+    }, async (req, res) => {
+        // If no End-Time provided, use current timestamp
+        let endTime: number;
+        if (req.headers["end-time"] !== undefined) endTime = req.headers["end-time"];
+        else endTime = Math.floor(Date.now() / 1000);
+
+        let posts = await postService.fetchPosts(req.headers["start-time"], endTime);
+
+        res.code(200);
+        res.send(new Response(RESPONSE_CODES.Success, "Successfully fetched posts", posts));
     });
 
     done();
