@@ -16,3 +16,10 @@ export const RESPONSE_CODES = {
     StaleRequest: 11,
     UnauthorisedUserRequest: 12
 }
+
+// Endpoints
+export const pingEndpoint = "/ping";
+export const postsEndpoint = "/posts";
+
+// MongoDB collections
+export const postsCollection = "posts";
