@@ -8,6 +8,7 @@ import log from "./log.js";
 import { KeypairSingleton } from "./KeypairSingleton.js";
 import { MongoConnection } from "./repository/MongoConnection.js";
 import pingRoute from './route/pingRoute.js';
+import postRoutes from './route/postRoutes.js';
 
 // Validate environment vars
 const port: number = process.env.PORT != undefined && !isNaN(parseInt(process.env.PORT))
@@ -39,5 +40,6 @@ const server = fastify({
 });
 
 server.register(pingRoute);
+server.register(postRoutes);
 
 server.listen({ port: port });

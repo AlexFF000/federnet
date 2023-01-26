@@ -1,13 +1,12 @@
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 
-import { RESPONSE_CODES } from "../constants.js";
+import { RESPONSE_CODES, pingEndpoint } from "../constants.js";
 import log from "../log.js";
 import Response from "../model/Response.js";
 
 /*
     Handler for responding to ping requests
 */
-const pingEndpoint = "/ping";
 
 export default (server: FastifyInstance , opts: FastifyPluginOptions, done: CallableFunction) => {
     server.get(pingEndpoint, async (req, res) => {
