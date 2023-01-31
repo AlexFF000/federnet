@@ -4,11 +4,15 @@
 import fastify from 'fastify';
 import { readFileSync } from "fs";
 
+import * as dotenv from 'dotenv';
+dotenv.config({ path: './community_server/.env'});
+
 import log from "./log.js";
 import { KeypairSingleton } from "./KeypairSingleton.js";
 import { MongoConnection } from "./repository/MongoConnection.js";
 import pingRoute from './route/pingRoute.js';
 import postRoutes from './route/postRoutes.js';
+import { startCLI } from './managementShell.js';
 
 // Validate environment vars
 const port: number = process.env.PORT != undefined && !isNaN(parseInt(process.env.PORT))
@@ -21,6 +25,18 @@ if (process.env.SSL_CERT_FILE === undefined || typeof process.env.SSL_CERT_FILE 
 }
 if (process.env.SSL_KEY_FILE === undefined || typeof process.env.SSL_KEY_FILE !== "string" || process.env.SSL_KEY_FILE === "") {
     log.fatal("No private key file path provided in SSL_KEY_FILE environment variable");
+    process.exit(1);
+}
+
+if (process.env.INFRASTRUCTURE_SERVER_ADDRESS !== undefined) {
+    try {
+        new URL(process.env.INFRASTRUCTURE_SERVER_ADDRESS);  // TypeError will be thrown if this isn't in a valid address format
+    } catch (e) {
+        log.fatal("Address provided in INFRASTRUCTURE_SERVER_ADDRESS is not in a valid URL format");
+        process.exit(1);
+    }
+} else {
+    log.fatal("No address provided in INFRASTRUCTURE_SERVER_ADDRESS environment variable");
     process.exit(1);
 }
 
@@ -43,3 +59,5 @@ server.register(pingRoute);
 server.register(postRoutes);
 
 server.listen({ port: port });
+
+await startCLI();

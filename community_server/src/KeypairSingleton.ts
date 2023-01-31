@@ -6,7 +6,7 @@ import { createPrivateKey, createPublicKey, generateKeyPair, KeyObject } from 'c
 import { promisify } from 'util';
 
 import log from './log.js';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile, copyFile } from 'fs/promises';
 
 dotenv.config({ path: './community_server/.env' });
 
@@ -81,6 +81,11 @@ class KeypairSingleton {
 
     private async generate() {
         // Generate and store keypair
+        let {publicKey, privateKey} = await this.generateNewKeys();
+        await this.updateKeys(publicKey, privateKey);
+    }
+
+    public async generateNewKeys(): Promise<{publicKey: string, privateKey: string}> {
         try {
             log.info("Generating new KeyPair");
             const { publicKey, privateKey } = await generateKeyPairPromise("rsa", {
@@ -97,6 +102,15 @@ class KeypairSingleton {
                 }
             });
 
+            return {publicKey, privateKey};
+        } catch (e) {
+            log.fatal(e, "Failed to generate keys");
+            process.exit(1);
+        }
+    }
+
+    public async updateKeys(publicKey: string, privateKey: string) {
+        try {
             log.info(`Writing new private key to ${this.privKeyPath}`);
             // Write private key to file
             await writeFile(this.privKeyPath, privateKey, {
@@ -112,10 +126,23 @@ class KeypairSingleton {
             });
 
             this.publicKey = createPublicKey(publicKey);
-
         } catch (e) {
-            log.fatal(e, "Failed to generate and store keys");
+            log.fatal(e, "Failed to store keys");
             process.exit(1);
+        }
+    }
+
+    public async backupPrivateKey(): Promise<boolean> {
+        try {
+            // Create a backup copy of the private key file so a new key can be generated without losing the old one
+            log.info(`Creating backup copy of private key`);
+            let dest = `${this.privKeyPath}.old`;
+            await copyFile(this.privKeyPath, dest);
+            log.info(`Copied private key to ${dest}`);
+            return true;
+        } catch (e) {
+            log.error(e, "Failed to backup private key");
+            return false;
         }
     }
 }
