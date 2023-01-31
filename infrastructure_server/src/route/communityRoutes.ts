@@ -103,7 +103,7 @@ export default (server: FastifyInstance, opts: FastifyPluginOptions, done: Calla
         if (req.body.address !== undefined) community.address = req.body.address;
         if (req.body.publicKey !== undefined) community.publicKey = req.body.publicKey;
 
-        let result: string = await communityService.updateCommunity(req.params.communityName, community);
+        let result: string = await communityService.updateCommunity(decodeURIComponent(req.params.communityName), community);
         let response: Response;
         switch(result) {
             case "CommunityNameNotUnique":
