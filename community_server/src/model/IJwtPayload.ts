@@ -4,6 +4,7 @@
 
 interface IJwtPayload {
     username: string,
+    publicKeyHash: string
 }
 
 export { IJwtPayload }

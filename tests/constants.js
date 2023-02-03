@@ -21,6 +21,8 @@ export const RESPONSE_CODES = {
 export const accountsEndpoint = "/accounts";
 export const sessionsEndpoint = "/sessions";
 export const infrastructureServerCommunitiesEndpoint = "/communities";
-export const communityServerPingEndpoint = "/ping";
+export const infrastructureServerPublicKeyEndpoint = "/publicKey";
 export const directMessagesEndpoint = "/DirectMessages"
+
+export const communityServerPingEndpoint = "/ping";
 export const postsEndpoint = "/posts";

@@ -11,6 +11,7 @@ import {tests_Account, tests_Account_CreateAccount} from './accountTests.js';
 import { tests_Community, tests_Community_InfrastructureServer } from './CommunityTests.js';
 import { tests_DirectMessage } from './DirectMessageTests.js';
 import { tests_Post } from './PostTests.js';
+import { tests_GetInfrastructureServerPublicKey } from './GetInfrastructureServerPublicKeyTests.js';
 import TestSet from './Structures/TestSet.js';
 
 
@@ -96,8 +97,12 @@ function getInfoFromCmdArgs(args) {
             case "tests_post":
                 tests = tests.concat(tests_Post);
                 break;
+            case "tests_getinfrastructureserverpublickey":
+                tests.push(tests_GetInfrastructureServerPublicKey);
+                break;
             case "all":
                 tests = tests.concat(tests_Account, tests_Community, tests_DirectMessage, tests_Post);
+                tests.push(tests_GetInfrastructureServerPublicKey);
                 break;
         }
         info.tests = tests;

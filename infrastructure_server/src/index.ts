@@ -1,4 +1,5 @@
 import fastify from 'fastify';
+import { readFileSync } from 'fs';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: './infrastructure_server/.env' });
@@ -9,7 +10,7 @@ import { KeypairSingleton } from './KeypairSingleton.js';
 import accountRoutes from './route/accountRoutes.js';
 import communityRoutes from './route/communityRoutes.js';
 import directMessageRoutes from './route/directMessageRoutes.js';
-import { readFileSync } from 'fs';
+import publicKeyRoute from './route/publicKeyRoute.js';
 
 // Validate environment vars
 const port: number = process.env.PORT != undefined && !isNaN(parseInt(process.env.PORT))
@@ -43,5 +44,6 @@ const server = fastify({
 server.register(accountRoutes);
 server.register(communityRoutes);
 server.register(directMessageRoutes);
+server.register(publicKeyRoute);
 
 server.listen({ port: port });

@@ -13,6 +13,7 @@ import { MongoConnection } from "./repository/MongoConnection.js";
 import pingRoute from './route/pingRoute.js';
 import postRoutes from './route/postRoutes.js';
 import { startCLI } from './managementShell.js';
+import { InfrastructureServerPublicKeySingleton } from './InfrastructureServerPublicKeySingleton.js';
 
 // Validate environment vars
 const port: number = process.env.PORT != undefined && !isNaN(parseInt(process.env.PORT))
@@ -42,6 +43,8 @@ if (process.env.INFRASTRUCTURE_SERVER_ADDRESS !== undefined) {
 
 // Generate keypair if it doesn't already exist
 await KeypairSingleton.getInstance();
+// Fetch Infrastructure Server's public key
+await InfrastructureServerPublicKeySingleton.getInstance();
 // Connect to MongoDb
 await MongoConnection.getInstance();
 

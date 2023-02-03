@@ -2,7 +2,7 @@
     Singleton for generating, reading in, and accessing the keypair
 */
 import * as dotenv from 'dotenv';
-import { createPrivateKey, createPublicKey, generateKeyPair, KeyObject } from 'crypto';
+import { createHash, createPrivateKey, createPublicKey, generateKeyPair, KeyObject } from 'crypto';
 import { promisify } from 'util';
 
 import log from './log.js';
@@ -21,6 +21,8 @@ class KeypairSingleton {
 
     publicKey!: KeyObject;
     privateKey!: KeyObject;
+
+    publicKeyHashDigest!: string;
 
     private constructor() {
         // Verify environment variables are provided
@@ -68,6 +70,7 @@ class KeypairSingleton {
             // Generate public key from priv key
             this.publicKey = createPublicKey(privKeyObject);
             this.privateKey = privKeyObject;
+            this.hashPublicKey();
             log.info("Key import successful");
         } catch (e: any) {
             if (e.code !== undefined && e.code === "ENOENT") {
@@ -113,10 +116,25 @@ class KeypairSingleton {
 
             this.publicKey = createPublicKey(publicKey);
 
+            this.hashPublicKey();
+
         } catch (e) {
             log.fatal(e, "Failed to generate and store keys");
             process.exit(1);
         }
+    }
+
+    private hashPublicKey() {
+        // Generate MD5 hash digest of public key represented as a base64 string
+        let hash = createHash("md5");
+        let publicKeyString = this.publicKey.export(
+            {
+                type: "spki",
+                format: "pem"
+            }
+        );
+        hash.update(publicKeyString);
+        this.publicKeyHashDigest = hash.digest("base64");
     }
 }
 
