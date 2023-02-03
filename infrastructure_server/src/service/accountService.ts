@@ -59,7 +59,8 @@ export async function getSession(account: Account): Promise<string> {
         });
 
         let payload = {
-            "username": storedAccount.username
+            "username": storedAccount.username,
+            "publicKeyHash": keypair.publicKeyHashDigest
         };
 
         // jsonwebtoken doesn't return Promises, so use it inside a Promise
@@ -134,7 +135,10 @@ function generatePasswordHash(password: string): Promise<string> {
 }
 
 function parsePayload(payload: any): IJwtPayload {
-    if (payload.username !== undefined && typeof payload.username === "string") {
+    if (
+        payload.username !== undefined && typeof payload.username === "string" &&
+        payload.publicKeyHash !== undefined && typeof payload.publicKeyHash === "string"
+    ) {
         return payload;
     } else {
         throw "Malformed JWt payload";

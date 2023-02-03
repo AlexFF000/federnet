@@ -1,9 +1,9 @@
 /*
     Logic for functionality relating to the Infrastructure Server
 */
-import { readFile } from 'fs/promises';
 import jsonwebtoken from 'jsonwebtoken';
 import axios from 'axios';
+import { createSign } from 'crypto';
 
 import * as dotenv from 'dotenv';
 dotenv.config({ path: './community_server/.env'});
@@ -12,20 +12,8 @@ import log from "../log.js";
 import { IJwtPayload } from "../model/IJwtPayload.js";
 import { RESPONSE_CODES } from '../constants.js';
 import { KeypairSingleton } from '../KeypairSingleton.js';
-
-
-// TODO FNT-27 Replace this with the mechanism for fetching the public key from the Infrastructure Server.  THIS IS A HACK THAT WILL ONLY WORK ON MY MACHINE
-import { createPrivateKey, createPublicKey, createSign } from 'crypto';
 import { ICommunityBody } from '../model/ICommunityBody.js';
-let importedPrivKey = await readFile("./infrastructure_server/keys/priv_key.pem", {
-    encoding: "utf-8"
-});
-let privKeyObject = createPrivateKey({
-    key: importedPrivKey, 
-    format: "pem",
-    passphrase: "password",
-});
-let publicKeyTEMP = createPublicKey(privKeyObject).export({type: "spki", format: "pem"});
+import { InfrastructureServerPublicKeySingleton } from '../InfrastructureServerPublicKeySingleton.js';
 
 export async function registerCommunity(name: string, description: string, address: string): Promise<string> {
     // Register the community with the Infrastructure Server
@@ -192,12 +180,16 @@ export async function removeCommunity(name: string) {
 
 export async function verifyToken(token: string): Promise<IJwtPayload | false> {
     // Verify JWT
+
+    let keyInstance = await InfrastructureServerPublicKeySingleton.getInstance();
+    let publicKey = keyInstance.publicKey;
+
     // jsonwebtoken doesn't return Promises, so use it inside a Promise
     return new Promise((resolve) => {
-        jsonwebtoken.verify(token, publicKeyTEMP, (err, decoded) => {
+        jsonwebtoken.verify(token, publicKey, (err, decoded) => {
             if (err) {
-                // Invalid token
-                resolve(false);
+                // Invalid token.  Check if key has changed
+                resolve(compareKeyHashes(token));
             } else {
                 try {
                     let parsedPayload: IJwtPayload = parsePayload(decoded);
@@ -211,8 +203,36 @@ export async function verifyToken(token: string): Promise<IJwtPayload | false> {
     });
 }
 
+export async function getPublicKey(): Promise<string> {
+    // Get the Infrastructure Server's public key
+    try {
+        log.info(`Fetching Infrastructure Server's public key`);
+
+        let url = "";
+        if (process.env.INFRASTRUCTURE_SERVER_ADDRESS !== undefined) url = new URL(process.env.INFRASTRUCTURE_SERVER_ADDRESS).toString();  // This will always be true, as the value is checked in index.ts (but TypeScript doesn't know this)
+
+        let response = await axios({
+            method: "get",
+            url: addPathToUrl(url, "/publicKey")
+        });
+
+        if (response.data.data !== undefined && response.data.data[0] !== undefined) {
+            return response.data.data[0];
+        } else {
+            log.fatal("Failed to get Infrastructure Server's public key: response from server did not contain the key");
+            process.exit(1);
+        }
+    } catch (e) {
+        log.fatal(e, "Failed to get Infrastructure Server's public key");
+        process.exit(1);
+    }
+}
+
 function parsePayload(payload: any): IJwtPayload {
-    if (payload.username !== undefined && typeof payload.username === "string") {
+    if (
+        payload.username !== undefined && typeof payload.username === "string" && 
+        payload.publicKeyHash !== undefined && typeof payload.publicKeyHash === "string"
+    ) {
         return payload;
     } else {
         throw "Malformed JWT payload";
@@ -261,4 +281,27 @@ async function addSignature(communityInfo: ICommunityBody): Promise<ICommunityBo
     communityInfo.signature = sign.sign(keypair.privateKey, "base64");
 
     return communityInfo;
+}
+
+async function compareKeyHashes(token: string): Promise<IJwtPayload | false> {
+    /*
+        Check if public key hash digest matches the one in the JWT (if the JWT has one).
+        If they don't match it may indicate that the Infrastructure Server's public key has changed so we should check to see if this is the case
+    */
+    try {
+        let keyInstance = await InfrastructureServerPublicKeySingleton.getInstance();
+        let parsedPayload: IJwtPayload = parsePayload(jsonwebtoken.decode(token));
+        let keyHash = keyInstance.publicKeyHashDigest;
+        if (parsedPayload.publicKeyHash !== keyHash) {
+            // The keys do not match, fetch the public key from the Infrastructure Server to ensure we have the most up to date version of it
+            await keyInstance.fetchKey();
+            if (keyInstance.publicKeyHashDigest !== keyHash) {
+                // The key has changed, so try verifying the token again
+                return await verifyToken(token);
+            }
+        }
+        return false;
+    } catch (e) {
+        return false;
+    }
 }

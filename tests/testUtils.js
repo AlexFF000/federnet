@@ -156,6 +156,12 @@ function assertListNotContainsPost(postsList, post) {
     } else return `postsList is not a list`;
 }
 
+function assertResponseHasData(response) {
+    // Assert that the response contains a data field with at least on item
+    if (response.body !== undefined && response.body.data instanceof Array && 0 < response.body.data.length) return true;
+    else return `Response does not contain data`;
+}
+
 
 export {
     HTTP_METHODS,
@@ -169,5 +175,6 @@ export {
     assertListContains,
     assertListContainsMessage,
     assertListContainsPost,
-    assertListNotContainsPost
+    assertListNotContainsPost,
+    assertResponseHasData
 }
