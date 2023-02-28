@@ -1,7 +1,10 @@
-node_modules
-.vscode
+node_modules/
+.vscode/
 **/build
 **/logs
 **/keys
 *.env
 *.dat
+
+user_client/**/out
+user_client/**/dist

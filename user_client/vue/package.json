@@ -1,0 +1,28 @@
+{
+  "name": "vue",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "watch": "npm-watch"
+  },
+  "dependencies": {
+    "vue": "^3.2.47",
+    "vue-router": "^4.1.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "npm-watch": "^0.11.0",
+    "vite": "^4.1.3"
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "src/*"
+      ],
+      "extensions": "vue, css, js"
+    }
+  }
+}
