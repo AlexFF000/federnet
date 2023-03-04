@@ -1,3 +1,16 @@
+/* Define all colour variables here so colour scheme can be changed by JS */
+:root {
+  --background-primary:  #121212;
+  --background-secondary: #2F2F2F;
+  --background-tertiary: #464646;
+
+  --button-background-primary: #00FFFF;
+  --button-text-primary: #872626;
+
+  --text-primary: #ededed;
+  --text-secondary: #bbbbbb;
+}
+
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: #ffffff;
@@ -59,6 +72,7 @@
   font-weight: normal;
 }
 
+/* Original Vue body css.  Delete this when no longer needed as a reference
 body {
   min-height: 100vh;
   color: var(--color-text);
@@ -71,4 +85,8 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+} */
+
+body {
+  background: var(--background-primary);
 }

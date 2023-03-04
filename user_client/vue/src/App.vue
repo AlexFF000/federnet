@@ -3,10 +3,6 @@ import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <header>
-    <div>Welcome to Federnet</div>
-  </header>
-
   <RouterView />
 </template>
 
