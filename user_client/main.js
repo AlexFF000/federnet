@@ -6,7 +6,7 @@ if (process.env.DEV_ENV !== undefined && process.env.DEV_ENV.trim() === "true") 
     console.log("In development mode.  Turning on hot reloading");
     require("electron-reload")("./vue/dist/", {
         awaitWriteFinish: {
-            stabilityThreshold: 200  // Wait until file size has remained constant for 200ms before reloading electron, otherwise it can reload while the file is still being written
+            stabilityThreshold: 500  // Wait until file size has remained constant for 200ms before reloading electron, otherwise it can reload while the file is still being written
         }
     })
 }
@@ -39,3 +39,6 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+// Handlers for renderer events
+require("./handlers.js");
