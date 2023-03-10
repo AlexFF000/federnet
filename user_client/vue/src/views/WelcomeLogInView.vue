@@ -1,6 +1,16 @@
+<script setup>
+import SettingsButton from "../components/SettingsButton.vue";
+</script>
+
 <template>
     <div class="welcome-page">
         
+        <div id="settings-button-container" class="settings-button-container">
+            <div id="settings-button-icon" class="settings-button-icon">
+                <SettingsButton/>
+            </div>
+        </div>
+
         <div id="welcome-title" class="welcome-title">
             Welcome to Federnet!
         </div>
@@ -69,6 +79,16 @@
     text-align: center;
 }
 
+.settings-button-container {
+    grid-row: 1;
+    grid-column: 3;
+    height: 100%;
+    width: 100%;
+    padding: 1vh;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
 .server-box {
     grid-row: 2;
     grid-column: 2;
@@ -125,6 +145,24 @@ export default {
         },
         redirectToCreateAccountPage() {
             this.$router.push({ name: "createAccount", params: { previousPage: "welcomeLogIn" } });
+        }
+    },
+    async mounted() {
+        // Load the settings
+        try {
+            let settings = await window.api.fetchSettings();
+
+            document.documentElement.style.setProperty("--background-primary", settings.backgroundPrimary);
+            document.documentElement.style.setProperty("--background-secondary", settings.backgroundSecondary);
+            document.documentElement.style.setProperty("--background-tertiary", settings.backgroundTertiary);
+            document.documentElement.style.setProperty("--button-background-primary", settings.buttonBackgroundPrimary);
+            document.documentElement.style.setProperty("--button-background-secondary", settings.buttonBackgroundSecondary);
+            document.documentElement.style.setProperty("--button-text-primary", settings.buttonTextPrimary);
+            document.documentElement.style.setProperty("--button-text-secondary", settings.buttonTextSecondary);
+            document.documentElement.style.setProperty("--text-primary", settings.textPrimary);
+            document.documentElement.style.setProperty("--text-secondary", settings.textSecondary);
+        } catch (e) {
+            console.log("Failed to load settings from background logic", e);
         }
     }
 }

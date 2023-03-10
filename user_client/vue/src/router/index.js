@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import WelcomeLogInView from '../views/WelcomeLogInView.vue'
 import CreateAccountView from '../views/CreateAccountView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -26,6 +27,14 @@ const router = createRouter({
       component: CreateAccountView,
       meta: {
         title: "Create Account"
+      }
+    },
+    {
+      path: '/settings/:previousPage',
+      name: 'settings',
+      component: SettingsView,
+      meta: {
+        title: "Federnet Settings"
       }
     },
     {

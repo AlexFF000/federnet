@@ -1,11 +1,16 @@
-/* Define all colour variables here so colour scheme can be changed by JS */
+/* 
+  Define all colour variables here so colour scheme can be changed by JS.  
+  The defaults here are overwritten by the background logic so don't set them here (though when changing defaults change them here too as these ones will be fallen back to if background logic somehow cannot be contacted) 
+*/
 :root {
-  --background-primary:  #121212;
+  --background-primary: #121212;
   --background-secondary: #2F2F2F;
   --background-tertiary: #464646;
 
   --button-background-primary: #00FFFF;
+  --button-background-secondary: #cdf4c8;
   --button-text-primary: #872626;
+  --button-text-secondary: #7b065a;
 
   --text-primary: #ededed;
   --text-secondary: #bbbbbb;

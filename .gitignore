@@ -8,3 +8,4 @@ node_modules/
 
 user_client/**/out
 user_client/**/dist
+user_client/config/

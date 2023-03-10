@@ -71,6 +71,19 @@
   cursor: not-allowed;
 }
 
+.button-secondary {
+  background-color: var(--button-background-secondary);
+  color: var(--button-text-secondary);
+}
+
+.back-arrow-container {
+  grid-row: 1;
+  grid-column: 1;
+  height: 10vh;
+  width: 10vh;
+  padding: 1vh;
+}
+
 a,
 .green {
   text-decoration: none;
