@@ -1,12 +1,18 @@
 <script setup>
 import BackArrow from "../components/BackArrow.vue";
+import SettingsButton from "../components/SettingsButton.vue";
 </script>
 
 <template>
     <div class="create-account-page">
 
         <div id="back-arrow-container" class="back-arrow-container">
-            <BackArrow />
+            <BackArrow previousPage="welcomeLogIn"/>
+        </div>
+        <div id="settings-button-container" class="settings-button-container">
+            <div id="settings-button-icon" class="settings-button-icon">
+                <SettingsButton/>
+            </div>
         </div>
 
         <div id="server-box" class="floating-box-container server-box">
@@ -72,12 +78,14 @@ import BackArrow from "../components/BackArrow.vue";
     margin-top: 10vh;
 }
 
-.back-arrow-container {
+.settings-button-container {
     grid-row: 1;
-    grid-column: 1;
-    height: 10vh;
-    width: 10vh;
+    grid-column: 3;
+    height: 100%;
+    width: 100%;
     padding: 1vh;
+    display: flex;
+    flex-direction: row-reverse;
 }
 
 </style>

@@ -11,6 +11,12 @@ contextBridge.exposeInMainWorld(
         },
         "createAccount": (infrastructureServer, username, password) => {
             return ipcRenderer.invoke("create-account", infrastructureServer, username, password)
+        },
+        "updateSettings": (newSettings) => {
+            return ipcRenderer.send("update-settings", newSettings)
+        },
+        "fetchSettings": () => {
+            return ipcRenderer.invoke("fetch-settings");
         }
     }
 );
