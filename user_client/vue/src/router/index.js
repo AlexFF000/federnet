@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import WelcomeLogInView from '../views/WelcomeLogInView.vue'
 import CreateAccountView from '../views/CreateAccountView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import PostsView from '../views/PostsView.vue'
+import FindCommunityView from '../views/FindCommunityView.vue';
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -35,6 +37,22 @@ const router = createRouter({
       component: SettingsView,
       meta: {
         title: "Federnet Settings"
+      }
+    },
+    {
+      path: '/findCommunity/:previousPage',
+      name: 'findCommunity',
+      component: FindCommunityView,
+      meta: {
+        title: "Find Federnet Community"
+      }
+    },
+    {
+      path: '/posts/:communityAddress?:communityName?',
+      name: 'posts',
+      component: PostsView,
+      meta: {
+        title: "Federnet"
       }
     },
     {

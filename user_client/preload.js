@@ -17,6 +17,106 @@ contextBridge.exposeInMainWorld(
         },
         "fetchSettings": () => {
             return ipcRenderer.invoke("fetch-settings");
+        },
+        "setCommunity": (communityAddress, communityName) => {
+            return ipcRenderer.send("set-active-community", communityAddress, communityName);
+        },
+        "fetchOlderPosts": () => {
+            return ipcRenderer.send("fetch-older");
+        },
+        "sendPost": (postContent) => {
+            return ipcRenderer.invoke("send-post", postContent);
+        },
+        "toggleCommunityPinned": () => {
+            return ipcRenderer.send("toggle-community-pinned");
+        },
+        "getPinnedCommunities": () => {
+            return ipcRenderer.invoke("get-pinned-communities");
+        },
+        "getCommunities": () => {
+            return ipcRenderer.invoke("fetch-communities");
+        },
+        "checkCommunityExists": (communityAddress) => {
+            return ipcRenderer.invoke("check-community-exists", communityAddress);
+        },
+        "logOut": () => {
+            return ipcRenderer.invoke("log-out");
         }
     }
 );
+
+// Frontend listeners
+ipcRenderer.on("error-info", (evt, message) => {
+    // Background logic is notifying us of a problem
+    console.log(message);
+});
+
+ipcRenderer.on("new-posts", (evt, posts) => {
+    // Add the new posts
+
+    /*
+        Scroll down to the bottom automatically so that the new posts are visible
+        Only do this if the user is already scrolled to the bottom.  Otherwise they are probably looking at older posts and it would be annoying to automatically scroll down when a new post arrives.
+        This scrolling is done here instead of inside the addPostToDisplay function because determining if it is scrolled all the way to the bottom and setting scrollTop is a little inexact
+        If the scrolling is done on each post being added, the small amount of error* quickly adds up enough that the threshold for being "scrolled all the way down" is no longer met, so it will stop scrolling down for the rest of the new posts.
+        Doing the scrolling once here avoids this issue.
+
+        *error is probably the wrong term here.  The issue is most likely my incomplete understanding of scrollHeight, offsetHeight, clientHeight and any other factors that affect scrolling
+    */
+    let postsArea = document.getElementById("posts-area");
+
+    let needsScroll = false;
+    if (Math.abs(postsArea.scrollHeight - postsArea.clientHeight - postsArea.scrollTop) <= 1) {
+        // The user is scrolled all the way down
+        needsScroll = true;
+    }
+
+    for (let p of posts) {
+        addPostToDisplay(p);
+    }
+
+    if (needsScroll) postsArea.scrollTop = postsArea.scrollHeight;
+});
+
+ipcRenderer.on("old-posts", (evt, posts) => {
+    let postsArea = document.getElementById("posts-area");
+    // Record old scrollHeight so we can prevent the scrollbar being moved upwards when the message is prepended
+    let oldScrollHeight = postsArea.scrollHeight;
+
+    // Iterate backwards through posts, so that they are added newest to oldest rather than oldest to newest
+    for (let i = posts.length - 1; -1 < i; i--) {
+        addPostToDisplay(posts[i], true);
+    }
+
+    postsArea.scrollTop = postsArea.scrollHeight - oldScrollHeight;
+});
+
+function addPostToDisplay(post, prepend=false) {
+    let postsArea = document.getElementById("posts-area");
+    
+    let postBox = document.createElement("div");
+    let postBoxUsername = document.createElement("div");
+    postBoxUsername.className = "post-box-username";
+    postBoxUsername.innerText = post.posterUsername;
+
+    let postBoxContent = document.createElement("div");
+    postBoxContent.className = "post-box-content";
+    postBoxContent.innerText = post.content;
+
+    postBox.className = "post-box";
+    postBox.appendChild(postBoxUsername);
+    postBox.appendChild(postBoxContent);
+
+    if (prepend) {
+        // Place the post before the existing posts
+        let oldestPost = postsArea.children[0];
+        if (oldestPost === undefined) {
+            // The new post is the first one the UI has received
+            postsArea.appendChild(postBox);
+        } else {
+            postsArea.insertBefore(postBox, oldestPost);
+        }
+    } else {
+        postsArea.appendChild(postBox);
+    }
+}

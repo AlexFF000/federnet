@@ -107,7 +107,7 @@ export default {
             vueScope.signupFeedback = "";  // Clear any existing feedback
             window.api.createAccount(this.infrastructureServer, this.username, this.password).then(result => {
                 if (result === "Success") {
-                    alert("Successfully created account and logged in");
+                    vueScope.$router.push({ name: "posts" });
                 } else if (result === "AccountCreatedLoginFailed") {
                     // Account was created but logging in failed.  Redirect to login page so user can try to login again manually
                     vueScope.$router.push({ path: "/welcome" });
