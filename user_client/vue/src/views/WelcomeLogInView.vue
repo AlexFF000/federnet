@@ -131,7 +131,7 @@ export default {
             
             window.api.logIn(this.infrastructureServer, this.username, this.password).then(result => {
                 if (result === "Success") {
-                    alert("Login was a success");
+                    vueScope.$router.push({ name: "posts" });
                 } else {
                     vueScope.loginFeedback = result;
                 }
@@ -139,7 +139,7 @@ export default {
         },
         fieldsNotEmpty() {
             // Check that all the fields are filled in
-            return this.infrastructureServer.trim() !== "" 
+            return this.infrastructureServer.trim() !== ""
                 && this.username.trim() !== "" 
                 && this.password.trim() !== "";
         },

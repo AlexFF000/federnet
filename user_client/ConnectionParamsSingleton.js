@@ -50,6 +50,16 @@ class ConnectionParamsSingleton {
     getJwt() {
         return this._jwt;
     }
+
+    clearParams() {
+        // Clear the params for logging out
+        this.setUsername(undefined);
+        this.setPassword(undefined);
+        this.setJwt(undefined);
+        this.setInfrastructureServerUrl(undefined);
+        
+        ConnectionParamsSingleton._instance = undefined;
+    }
 }
 
 module.exports = ConnectionParamsSingleton;

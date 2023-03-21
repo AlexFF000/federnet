@@ -9,10 +9,15 @@ import log from "../log.js";
 import Post from "../model/Post.js";
 import { MongoConnection } from "./MongoConnection.js";
 
+const PostsBatchLimit = 1000;  // Only return 1000 posts at a time to avoid overloading
+
 export async function addPost(post: Post): Promise<boolean> {
     try {
         let database: Db = (await MongoConnection.getInstance()).database;
         let collection: Collection = database.collection(postsCollection);
+
+        // Create index on timestamp if one doesn't already exist
+        collection.createIndex({ timestamp: 1});  // 1 = ascending index
 
         await collection.insertOne(post);
 
@@ -33,14 +38,22 @@ export async function getPosts(startTime: number, endTime: number): Promise<Post
         if (typeof startTime === "string") startTime = parseInt(startTime);
         if (typeof endTime === "string") endTime = parseInt(endTime);
 
+        // Only return up to PostsBatchLimit posts to avoid overloading.  These should be the last N posts before the end-time (rather than the first N after the start-time) as the user will be fetching the most recent posts first
+        // Get the total number of posts matching the query so we can skip to the last N.  This count will use the index rather than needing to manually check the posts
+        let postsMatchingQuery = await collection.count({
+            "timestamp": {"$gte": startTime, "$lte": endTime}
+        });
+
+        let postsToSkip = PostsBatchLimit < postsMatchingQuery ? postsMatchingQuery - PostsBatchLimit : 0;
+
         let posts = await collection.find({ 
             "timestamp": { "$gte": startTime, "$lte": endTime }  // Where timestamp is greater than or equal to startTime and less than or equal to endTime
         }, 
         {
-            limit: 1000,  // Only return up to 1000 posts to avoid overloading
             projection: {
                 "_id": 0  // Exclude id field
-            }
+            },
+            skip: postsToSkip
         }).toArray();
 
         log.debug(`Fetched ${posts.length} posts`);

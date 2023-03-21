@@ -1,6 +1,12 @@
 const ENDPOINTS = {
+    // Infrastructure server
     sessions: "/sessions",
-    accounts: "/accounts"
+    accounts: "/accounts",
+    communities: "/communities",
+
+    // Community server
+    ping: "/ping",
+    posts: "/posts"
 }
 
 const RESPONSE_CODES = {
