@@ -3,6 +3,7 @@ const ENDPOINTS = {
     sessions: "/sessions",
     accounts: "/accounts",
     communities: "/communities",
+    directMessages: "/DirectMessages",
 
     // Community server
     ping: "/ping",

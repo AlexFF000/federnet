@@ -2,6 +2,7 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
+let handleNewMessagesFunctionRef = null;
 // Expose the following methods in the renderer context as children of the window object
 contextBridge.exposeInMainWorld(
     "api",
@@ -39,8 +40,38 @@ contextBridge.exposeInMainWorld(
         "checkCommunityExists": (communityAddress) => {
             return ipcRenderer.invoke("check-community-exists", communityAddress);
         },
+        "startDirectMessagePolling": () => {
+            return ipcRenderer.send("start-dm-polling");
+        },
+        "needsKeypairSetup": () => {
+            return ipcRenderer.invoke("needs-keypair-setup");
+        },
+        "generateKeypair": () => {
+            return ipcRenderer.invoke("generate-keypair");
+        },
+        "userHasKey": (username) => {
+            return ipcRenderer.invoke("user-has-key", username);
+        },
+        "sendMessage": (username, content) => {
+            return ipcRenderer.invoke("send-message", username, content);
+        },
+        "getConversations": () => {
+            return ipcRenderer.invoke("get-conversations");
+        },
+        "setConversation": (username) => {
+            return ipcRenderer.invoke("set-active-conversation", username);
+        },
+        "getNewMessages": () => {
+            return ipcRenderer.invoke("get-new-messages");
+        },
+        "getOldMessages": () => {
+            return ipcRenderer.invoke("get-old-messages");
+        },
         "logOut": () => {
             return ipcRenderer.invoke("log-out");
+        },
+        "exposeHandleNewMessagesFunctionRef": (functionRef) => {
+            handleNewMessagesFunctionRef = functionRef;
         }
     }
 );
@@ -89,6 +120,19 @@ ipcRenderer.on("old-posts", (evt, posts) => {
     }
 
     postsArea.scrollTop = postsArea.scrollHeight - oldScrollHeight;
+});
+
+ipcRenderer.on("new-messages", () => {
+    if (document.getElementById("posts-page") !== null) {
+        // If on posts page, add the new messages icon to the direct messages icon
+        document.getElementById("direct-messages-icon-notification-dot").style.fill = "var(--button-background-primary)";
+    } else {
+        // If on direct messages page, call handleNewMessages function
+        if (handleNewMessagesFunctionRef instanceof Function) {
+            // Call loadMessages function
+            handleNewMessagesFunctionRef();
+        }
+    }
 });
 
 function addPostToDisplay(post, prepend=false) {

@@ -74,7 +74,117 @@ async function createAccount() {
     }
 }
 
+async function setPublicKey(publicKey) {
+    // Send a SetPublicKey request to change the user's public key
+    let connectionParamsSingleton = ConnectionParamsSingleton.getInstance();
+
+    let response = await sendRequest(
+        connectionParamsSingleton.getInfrastructureServerUrl(),
+        `${ENDPOINTS.accounts}/${connectionParamsSingleton.getUsername()}`,
+        "put",
+        {
+            publicKey: publicKey
+        },
+        {
+            Authorization: `Bearer ${connectionParamsSingleton.getJwt()}`
+        }
+    );
+
+    if (response.validResponseReceived) {
+        if (response.code === RESPONSE_CODES.Success) {
+            return "Success";
+        } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
+            // TODO refresh token
+        }
+    } else {
+        return response.errorMessage;
+    }
+}
+
+async function getPublicKey(username) {
+    // Send a GetPublicKey request to get a user's public key
+    let connectionParamsSingleton = ConnectionParamsSingleton.getInstance();
+
+    let response = await sendRequest(
+        connectionParamsSingleton.getInfrastructureServerUrl(),
+        `${ENDPOINTS.accounts}/${username}`,
+        "get"
+    );
+
+    if (response.validResponseReceived) {
+        if (response.code === RESPONSE_CODES.Success) {
+            return response.data[0];
+        }
+    }
+
+    return null;
+}
+
+async function sendDirectMessage(username, encryptedContent) {
+    // Send a SendDirectMessage request
+    let connectionParamsSingleton = ConnectionParamsSingleton.getInstance();
+
+    let response = await sendRequest(
+        connectionParamsSingleton.getInfrastructureServerUrl(),
+        ENDPOINTS.directMessages,
+        "post",
+        {
+            content: encryptedContent,
+            recipientUsername: username
+        },
+        {
+            Authorization: `Bearer ${connectionParamsSingleton.getJwt()}`
+        }
+    );
+
+    if (response.validResponseReceived) {
+        if (response.code === RESPONSE_CODES.Success) {
+            return "Success";
+        } else if (response.code === RESPONSE_CODES.UserNotFound) {
+            return "UserNotFound";
+        } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
+            // TODO refresh token
+        }
+    } else {
+        return "GenericFailure";
+    }
+}
+
+async function fetchDirectMessages(startTime=0, endTime) {
+    // Send a FetchDirectMessages request to fetch Direct Messages from the Infrastructure Server
+    let connectionParamsSingleton = ConnectionParamsSingleton.getInstance();
+
+    let headers = {};
+    headers.Authorization = `Bearer ${connectionParamsSingleton.getJwt()}`;
+    headers["Start-Time"] = startTime;
+    if (endTime !== undefined) headers["End-Time"] = endTime;
+
+    let response = await sendRequest(
+        connectionParamsSingleton.getInfrastructureServerUrl(),
+        ENDPOINTS.directMessages,
+        "get",
+        {},
+        headers
+    );
+
+    if (response.validResponseReceived) {
+        if (response.code === RESPONSE_CODES.Success) {
+            if (response.data instanceof Array) {
+                return response.data;
+            }
+        } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
+            // TODO Refresh token
+        }
+    }
+
+    return [];
+}
+
 module.exports = {
     getSession,
-    createAccount
+    createAccount,
+    setPublicKey,
+    getPublicKey,
+    sendDirectMessage,
+    fetchDirectMessages
 }

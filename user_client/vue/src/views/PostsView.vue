@@ -3,7 +3,7 @@ import SettingsButton from "../components/SettingsButton.vue";
 import DirectMessagesButton from "../components/DirectMessagesButton.vue";
 </script>
 <template>
-    <div class="posts-page">
+    <div class="posts-page" id="posts-page">
         <div id="posts-sidebar-container" class="posts-sidebar-container">
             <div id="posts-sidebar" class="posts-sidebar">
                 <div id="find-community-button-section" class="find-community-button-section">
@@ -48,53 +48,12 @@ import DirectMessagesButton from "../components/DirectMessagesButton.vue";
 </template>
 
 <style scoped>
+/* Many of the classes used on this page are in main.css as they are also used by the Direct Messages page */
 .posts-page {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     grid-template-rows: 15mm 1fr;
     max-height: 100vh;
-}
-
-.posts-sidebar-container {
-    display: inherit;
-    grid-column: 1;
-    height: 100vh;
-}
-
-.posts-sidebar {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--background-secondary);
-}
-
-.find-community-button-section {
-    border-bottom: solid var(--background-tertiary);
-    padding: 1vh;
-}
-
-.pinned-communities-heading {
-    border-bottom: solid var(--background-tertiary);
-    text-align: center;
-    margin-left: 1em;
-    margin-right: 1em;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-.pinned-communities-list {
-    padding: 0;
-    overflow-y: auto;
-}
-
-.sidebar-link {
-    text-align: center;
-    border-radius: 0.5vh;
-}
-
-.sidebar-list-item {
-    list-style: none;
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
 }
 
 .log-out-button-section {
@@ -105,13 +64,6 @@ import DirectMessagesButton from "../components/DirectMessagesButton.vue";
     border-top: solid var(--background-tertiary);
 }
 
-.posts-section {
-    display: inherit;
-    grid-column-start: 2;
-    grid-column-end: 6;
-    grid-row: 2;
-}
-
 .pin-community-button-container {
     display: flex;
     flex-direction: row-reverse;
@@ -119,38 +71,6 @@ import DirectMessagesButton from "../components/DirectMessagesButton.vue";
 
 .pin-community-button {
     margin: 0.5em;
-}
-
-.posts-area {
-    height: 80vh;
-    overflow-y: scroll;
-}
-
-.post-creation-container {
-    display: inline-flex;
-    margin-left: 1em;
-    margin-right: 1em;
-}
-
-.new-post-textbox {
-    margin-left: 1vw;
-    height: 100%;
-    margin-right: 0.2em;
-}
-
-.new-post-submit {
-    height: 100%;
-}
-
-.sidebar-link:hover {
-    background-color: var(--background-tertiary);
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-
-.sidebar-link-selected {
-    background-color: var(--background-tertiary);
-    color: var(--text-secondary);
 }
 
 .nav-buttons-container {
@@ -165,28 +85,6 @@ import DirectMessagesButton from "../components/DirectMessagesButton.vue";
 
 .settings-button-icon {
 
-}
-</style>
-
-<style>
-.post-box {
-    margin: 1em;
-    border-radius: 0.2em;
-    background-color: var(--background-tertiary);
-    color: var(--text-secondary);
-    width: fit-content;
-    padding: 1em;
-    max-width: 90%;
-}
-
-.post-box-username {
-    font-weight: bold;
-}
-
-.post-box-content {
-    border-radius: 0.2em;
-    background-color: var(--background-tertiary);
-    color: var(--text-secondary);
 }
 </style>
 
@@ -287,6 +185,9 @@ export default {
 
         // Get pinned communities
         await this.getPinnedCommunities();
+
+        // Start polling for direct messages
+        window.api.startDirectMessagePolling();
 
         // If a communityServer has been provided in params, connect to it
         if (this.$route.params.communityAddress && this.$route.params.communityName) {
