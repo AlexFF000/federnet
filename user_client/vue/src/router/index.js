@@ -5,6 +5,7 @@ import CreateAccountView from '../views/CreateAccountView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import PostsView from '../views/PostsView.vue'
 import FindCommunityView from '../views/FindCommunityView.vue';
+import DirectMessagesView from '../views/DirectMessagesView.vue';
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -53,6 +54,14 @@ const router = createRouter({
       component: PostsView,
       meta: {
         title: "Federnet"
+      }
+    },
+    {
+      path: '/messages',
+      name: 'directMessages',
+      component: DirectMessagesView,
+      meta: {
+        title: "Federnet Direct Messages"
       }
     },
     {
