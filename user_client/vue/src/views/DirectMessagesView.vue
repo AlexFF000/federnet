@@ -9,14 +9,14 @@ import DirectMessagesPageNavButtons from "../components/DirectMessagesPageNavBut
         <div id="messages-sidebar-container" class="posts-sidebar-container height-limited">
             <div id="messages-sidebar" class="posts-sidebar">
                 <div id="new-conversation-button-section" class="find-community-button-section">
-                    <div id="new-conversation-button" class="sidebar-link" @click="newConversation()">New conversation</div>
+                    <div id="new-conversation-button" class="sidebar-link" @click="newConversation()" @keyup.enter="newConversation()" tabindex="3">New conversation</div>
                 </div>
                 <div class="pinned-communities-heading">
                     Conversations
                 </div>
                 <div id="existing-conversations">
-                    <ul class="pinned-communities-list" ref="existingConversationsList">
-                        <li class="sidebar-list-item sidebar-link" v-for="(info, name) in existingConversations" @click="changeActiveConversation(name)">
+                    <ul class="pinned-communities-list" ref="existingConversationsList" @keyup.down="scrollDownThroughConversationsWithKeyboard" @keyup.up="scrollUpThroughConversationsWithKeyboard" tabindex="4">
+                        <li class="sidebar-list-item sidebar-link" v-for="(info, name) in existingConversations" @click="changeActiveConversation(name)" @keyup.enter="changeActiveConversation(name)" tabindex="-1">
                             {{ name }}
                         </li>
                     </ul>
@@ -25,7 +25,7 @@ import DirectMessagesPageNavButtons from "../components/DirectMessagesPageNavBut
         </div>
 
         <div id="messages-section" class="posts-section">
-            <div id="messages-area" class="posts-area messages-area" ref="messagesArea" @scroll="handleMessagesScrolled">
+            <div id="messages-area" class="posts-area messages-area" ref="messagesArea" @scroll="handleMessagesScrolled" tabindex="5">
                 <!-- The area where the posts are displayed -->
                 <ul>
                     <li v-for="m in currentConversationMessages" class="post-box message-box">
@@ -39,8 +39,8 @@ import DirectMessagesPageNavButtons from "../components/DirectMessagesPageNavBut
                 </ul>
             </div>
             <div id="message-creation-container" class="post-creation-container">
-                <input id="new-message-textbox" type="text" class="text-input-box new-post-textbox" v-model="newMessageContent" @keyup.enter="sendMessage" :disabled="!aConversationIsSelected()"/>
-                <input id="new-message-submit" type="button" class="form-submit-button new-post-submit" value="Send" @click="sendMessage" :disabled="!aConversationIsSelected()"/>
+                <input id="new-message-textbox" type="text" class="text-input-box new-post-textbox" v-model="newMessageContent" @keyup.enter="sendMessage" :disabled="!aConversationIsSelected()" tabindex="6"/>
+                <input id="new-message-submit" type="button" class="form-submit-button new-post-submit" value="Send" @click="sendMessage" :disabled="!aConversationIsSelected()" tabindex="7"/>
             </div>
         </div>
     </div>
@@ -56,14 +56,14 @@ import DirectMessagesPageNavButtons from "../components/DirectMessagesPageNavBut
                     <div id="new-conversation-username-input-label-wrapper" class="text-input-label">
                         <label for="new-conversation-username">Recipient username:</label>
                     </div>
-                    <input id="new-conversation-username" type="text" class="text-input-box" v-model="newConversationDialogUsername" @keyup.enter="newConversationSubmitUsernameIfProvided()"/>
+                    <input id="new-conversation-username" type="text" class="text-input-box" v-model="newConversationDialogUsername" @keyup.enter="newConversationSubmitUsernameIfProvided()" tabindex="3"/>
                 </div>
                 <div id="new-conversation-feedback" class="form-feedback-box" v-show="0 < newConversationErrorText.length">
                     {{ newConversationErrorText }}
                 </div>
                 <div class="form-submit-button-container">
-                    <input id="new-conversation-cancel" type="button" value="Cancel" class="form-submit-button button-secondary new-conversation-form-button" @click="newConversationCancel()"/>
-                    <input id="new-conversation-submit" type="button" value="Submit" class="form-submit-button new-conversation-form-button" @click="newConversationSubmitUsername()" :disabled="newConversationDialogUsername.length === 0"/>
+                    <input id="new-conversation-cancel" type="button" value="Cancel" class="form-submit-button button-secondary new-conversation-form-button" @click="newConversationCancel()" tabindex="4"/>
+                    <input id="new-conversation-submit" type="button" value="Submit" class="form-submit-button new-conversation-form-button" @click="newConversationSubmitUsername()" :disabled="newConversationDialogUsername.length === 0" tabindex="5"/>
                 </div>
             </div>
         </div>
@@ -86,7 +86,7 @@ import DirectMessagesPageNavButtons from "../components/DirectMessagesPageNavBut
                     Warning: If you have an existing keypair on another device, this will invalidate it
                 </div>
                 <div class="form-submit-button-container">
-                    <input id="generate-keypair-button" type="button" value="Generate keypair" class="form-submit-button" @click="generateKeypair()"/>
+                    <input id="generate-keypair-button" type="button" value="Generate keypair" class="form-submit-button" @click="generateKeypair()" tabindex="3"/>
                 </div>
             </div>
         </div>
@@ -157,7 +157,8 @@ export default {
             newConversationErrorText: "",
             newMessageContent: "",
             currentConversationUsername: "",
-            currentConversationMessages: []
+            currentConversationMessages: [],
+            selectedConversationListItem: null
         }
     },
     methods: {
@@ -323,6 +324,34 @@ export default {
                     this.$refs.messagesArea.scrollTop = this.$refs.messagesArea.scrollHeight;
                 })
             }
+        },
+        scrollDownThroughConversationsWithKeyboard() {
+            // Scroll down through the list of conversations with the keyboard
+            if (this.selectedConversationListItem === null) {
+                // Nothing selected yet, select the first one
+                this.selectedConversationListItem = 0;
+            } else if (this.selectedConversationListItem < Object.keys(this.existingConversations).length -1) {
+                // Scroll to next one
+                this.selectedConversationListItem++;
+            } else {
+                // End reached, scroll back to first one
+                this.selectedConversationListItem = 0;
+            }
+
+            // Focus on selected list item
+            this.$refs.existingConversationsList.children[this.selectedConversationListItem].focus();
+        },
+        scrollUpThroughConversationsWithKeyboard() {
+            // Scroll up through the list of conversations with the keyboard
+            if (this.selectedConversationListItem === null || this.selectedConversationListItem === 0) {
+                // Jump straight to end
+                this.selectedConversationListItem = Object.keys(this.existingConversations).length - 1;
+            } else {
+                this.selectedConversationListItem--;
+            }
+
+            // Focus on selected list item
+            this.$refs.existingConversationsList.children[this.selectedConversationListItem].focus();
         }
     },
     async mounted() {

@@ -7,11 +7,11 @@ import SettingsButton from "../components/SettingsButton.vue";
     <div class="create-account-page">
 
         <div id="back-arrow-container" class="back-arrow-container">
-            <BackArrow previousPage="welcomeLogIn"/>
+            <BackArrow previousPage="welcomeLogIn" tabindex="5"/>
         </div>
         <div id="settings-button-container" class="settings-button-container">
             <div id="settings-button-icon" class="settings-button-icon">
-                <SettingsButton/>
+                <SettingsButton tabindex="6"/>
             </div>
         </div>
 
@@ -21,7 +21,7 @@ import SettingsButton from "../components/SettingsButton.vue";
             </div>
 
             <div id="server-input-box">
-                <input type="text" id="server-input" class="text-input-box" aria-label="Infrastructure server address" v-model="infrastructureServer"/>
+                <input type="text" id="server-input" class="text-input-box" aria-label="Infrastructure server address" v-model="infrastructureServer" tabindex="1"/>
             </div>
         </div>
 
@@ -35,19 +35,19 @@ import SettingsButton from "../components/SettingsButton.vue";
                     <div id="username-input-label-wrapper" class="text-input-label">
                         <label for="username-input">Username:</label>
                     </div>
-                    <input id="username-input" class="text-input-box" type="text" v-model="username"/>
+                    <input id="username-input" class="text-input-box" type="text" v-model="username" tabindex="2"/>
                 </div>
                 <div id="password-input-box" class="input-box-container">
                     <div id="password-input-label-wrapper" class="text-input-label">
                         <label for="password-input">Password:</label>
                     </div>
-                    <input id="password-input" class="text-input-box" type="password" v-model="password"/>
+                    <input id="password-input" class="text-input-box" type="password" v-model="password" @keyup.enter="submitSignupIfProvided" tabindex="3"/>
                 </div>
                 <div id="signup-feedback-box-container" class="form-feedback-box" v-show="0 < signupFeedback.length">
                     {{signupFeedback}}
                 </div>
                 <div id="signup-submit-container" class="form-submit-button-container">
-                    <input id="signup-submit" type="button" value="Create" class="form-submit-button" @click="submitSignup" :disabled="!fieldsNotEmpty()"/>
+                    <input id="signup-submit" type="button" value="Create" class="form-submit-button" @click="submitSignup" :disabled="!fieldsNotEmpty()" tabindex="4"/>
                 </div>
             </div>
         </div>
@@ -122,6 +122,11 @@ export default {
             return this.infrastructureServer.trim() !== "" 
                 && this.username.trim() !== "" 
                 && this.password.trim() !== "";
+        },
+        submitSignupIfProvided() {
+            if (this.fieldsNotEmpty()) {
+                this.submitSignup();
+            }
         }
     }
 }

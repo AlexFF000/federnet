@@ -14,6 +14,9 @@ export async function addCommunity(community: Community): Promise<boolean> {
         let database: Db = (await MongoConnection.getInstance()).database;
         let collection: Collection = database.collection(communitiesCollection);
 
+        // Create index on name if one doesn't already exist
+        collection.createIndex({ name: 1 });  // 1 = ascending index
+        
         await collection.insertOne(community);
 
         log.debug(`Added community ${community.name}`);

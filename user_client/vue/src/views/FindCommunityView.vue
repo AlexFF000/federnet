@@ -5,11 +5,11 @@ import SettingsButton from "../components/SettingsButton.vue";
 <template>
     <div id="find-community-page" class="find-community-page">
         <div id="back-arrow-container" class="back-arrow-container">
-            <BackArrow/>
+            <BackArrow tabindex="5"/>
         </div>
         <div id="settings-button-container" class="settings-button-container">
             <div id="settings-button-icon" class="settings-button-icon">
-                <SettingsButton/>
+                <SettingsButton tabindex="6"/>
             </div>
         </div>
 
@@ -18,24 +18,24 @@ import SettingsButton from "../components/SettingsButton.vue";
 
             <div id="manual-connection-name-container" class="input-box-container">
                 <div id="manual-connection-name-label-wrapper" class="text-input-label">
-                    <label for="manual-connection-name-field">Name</label>
+                    <label for="manual-connection-name-field">Community name</label>
                 </div>
-                <input id="manual-connection-name-field" class="text-input-box" type="text" v-model="communityName"/>
+                <input id="manual-connection-name-field" class="text-input-box" type="text" v-model="communityName" tabindex="1"/>
             </div>
             
             <div id="manual-connection-address-container" class="input-box-container">
                 <div id="manual-connection-address-label-wrapper" class="text-input-label">
                     <label for="manual-connection-address-field">Address</label>
                 </div>
-                <input id="manual-connection-address-field" class="text-input-box" type="text" v-model="communityAddress"/>
+                <input id="manual-connection-address-field" class="text-input-box" type="text" v-model="communityAddress" tabindex="2" @keyup.enter="connectToCommunityIfProvided"/>
             </div>
         </div>
 
         <div class="discover-community-container">
             <div class="section-heading">Find community in list</div>
-            <div class="discover-community-list-container">
-                <ul id="discover-community-list" class="discover-community-list">
-                    <li class="discover-community-list-item" v-for="community in communities" @click="setCommunityFields(community.name, community.address)">
+            <div class="discover-community-list-container" ref="discoverCommunityListContainer">
+                <ul id="discover-community-list" class="discover-community-list" tabindex="3" @keyup.down="scrollDownWithKeyboard" @keyup.up="scrollUpWithKeyboard" @keyup.enter="connectToCommunityIfProvided" ref="discoverCommunityList">
+                    <li class="discover-community-list-item" v-for="community in communities" @click="setCommunityFields(community.name, community.address)" tabindex="-1">
                         <div class="discover-community-list-item-name">
                             {{ community.name }}
                         </div>
@@ -52,7 +52,7 @@ import SettingsButton from "../components/SettingsButton.vue";
         </div>
 
         <div id="connect-button-container" class="connect-button-container">
-            <input id="connect-button" class="form-submit-button connect-button" type="button" @click="connectToCommunity" value="Connect" :disabled="!fieldsNotEmpty()"/>
+            <input id="connect-button" class="form-submit-button connect-button" type="button" @click="connectToCommunity" value="Connect" :disabled="!fieldsNotEmpty()" tabindex="4"/>
         </div>
     </div>
 </template>
@@ -118,6 +118,11 @@ import SettingsButton from "../components/SettingsButton.vue";
     cursor: pointer;
 }
 
+.discover-community-list-item-keyboard-selected {
+    background-color: var(--background-tertiary);
+    color: var(--text-secondary);
+}
+
 .discover-community-list-item-name {
     font-weight: bold;
 }
@@ -150,7 +155,8 @@ import SettingsButton from "../components/SettingsButton.vue";
                 communityAddress: "",
                 communityName: "",
                 communities: [],
-                errorText: ""
+                errorText: "",
+                selectedListItem: null
             }
         },
         methods: {
@@ -179,6 +185,59 @@ import SettingsButton from "../components/SettingsButton.vue";
                 } else {
                     this.errorText = "No community server found at the given address";
                 }
+            },
+            async connectToCommunityIfProvided() {
+                if (this.fieldsNotEmpty()) {
+                    await this.connectToCommunity();
+                }
+            },
+            scrollDownWithKeyboard() {
+                // Scroll through communities in the list with arrow keys
+
+                // Deselect currently selected item (if there is one)
+                if (this.selectedListItem !== null) {
+                    let item = this.$refs.discoverCommunityList.children[this.selectedListItem];
+                    item.classList.remove("discover-community-list-item-keyboard-selected");
+                }
+
+                if (this.selectedListItem === null) {
+                    // Nothing selected yet, select first element
+                    this.selectedListItem = 0;
+                } else if (this.selectedListItem < this.communities.length - 1) {
+                    // Select next list item
+                    this.selectedListItem++;
+                } else {
+                    // Reached the end.  Restart from beginning
+                    this.selectedListItem = 0;
+                    this.$refs.discoverCommunityListContainer.scrollTop = 0;
+                }
+
+                // Highlight the selected item and give it focus
+                let item = this.$refs.discoverCommunityList.children[this.selectedListItem];
+                item.classList.add("discover-community-list-item-keyboard-selected");
+                item.focus();
+                this.setCommunityFields(this.communities[this.selectedListItem].name, this.communities[this.selectedListItem].address);
+            },
+            scrollUpWithKeyboard() {
+                // Scroll up through communities with arrow keys
+                // Deselect currently selected item (if there is one)
+                if (this.selectedListItem !== null) {
+                    let item = this.$refs.discoverCommunityList.children[this.selectedListItem];
+                    item.classList.remove("discover-community-list-item-keyboard-selected");
+                    this.$refs.discoverCommunityListContainer.scrollTop = this.$refs.discoverCommunityList.scrollHeight;
+                }
+
+                if (this.selectedListItem === null || this.selectedListItem === 0) {
+                    this.selectedListItem = this.communities.length - 1;
+                } else {
+                    this.selectedListItem--;
+                }
+
+                // Highlight the selected item and give it focus
+                let item = this.$refs.discoverCommunityList.children[this.selectedListItem];
+                item.classList.add("discover-community-list-item-keyboard-selected");
+                item.focus();
+                this.setCommunityFields(this.communities[this.selectedListItem].name, this.communities[this.selectedListItem].address);
             }
         },
         async mounted() {
