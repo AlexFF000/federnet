@@ -7,7 +7,7 @@ import SettingsButton from "../components/SettingsButton.vue";
         
         <div id="settings-button-container" class="settings-button-container">
             <div id="settings-button-icon" class="settings-button-icon">
-                <SettingsButton/>
+                <SettingsButton tabindex="6"/>
             </div>
         </div>
 
@@ -21,7 +21,7 @@ import SettingsButton from "../components/SettingsButton.vue";
             </div>
 
             <div id="server-input-box">
-                <input type="text" id="server-input" class="text-input-box" aria-label="Infrastructure server address" v-model="infrastructureServer"/>
+                <input type="text" id="server-input" class="text-input-box" aria-label="Infrastructure server address" v-model="infrastructureServer" tabindex="1"/>
             </div>
         </div>
 
@@ -35,19 +35,19 @@ import SettingsButton from "../components/SettingsButton.vue";
                     <div id="username-input-label-wrapper" class="text-input-label">
                         <label for="username-input">Username:</label>
                     </div>
-                    <input id="username-input" class="text-input-box" type="text" v-model="username"/>
+                    <input id="username-input" class="text-input-box" type="text" v-model="username" tabindex="2"/>
                 </div>
                 <div id="password-input-box" class="input-box-container">
                     <div id="password-input-label-wrapper" class="text-input-label">
                         <label for="password-input">Password:</label>
                     </div>
-                    <input id="password-input" class="text-input-box" type="password" v-model="password"/>
+                    <input id="password-input" class="text-input-box" type="password" v-model="password" tabindex="3" @keyup.enter="submitLoginIfProvided"/>
                 </div>
                 <div id="login-feedback-box-container" class="form-feedback-box" v-show="0 < loginFeedback.length">
                     {{loginFeedback}}
                 </div>
                 <div id="login-submit-container" class="form-submit-button-container">
-                    <input id="login-submit" type="button" value="Log in" class="form-submit-button" @click="submitLogin" :disabled="!fieldsNotEmpty()"/>
+                    <input id="login-submit" type="button" value="Log in" class="form-submit-button" @click="submitLogin" :disabled="!fieldsNotEmpty()" tabindex="4"/>
                 </div>
             </div>
         </div>
@@ -55,7 +55,7 @@ import SettingsButton from "../components/SettingsButton.vue";
         <div id="create-account-link-container" class="create-account-link-container">
             <div id="create-account-or-text" class="create-account-link-text">Or</div>
             <div id="create-account-link" class="create-account-link-text">
-                <input id="create-account-link-button" type="button" value="Create Account" class="form-submit-button" @click="redirectToCreateAccountPage"/>
+                <input id="create-account-link-button" type="button" value="Create Account" class="form-submit-button" @click="redirectToCreateAccountPage" tabindex="5"/>
             </div>
         </div>
         
@@ -145,6 +145,11 @@ export default {
         },
         redirectToCreateAccountPage() {
             this.$router.push({ name: "createAccount", params: { previousPage: "welcomeLogIn" } });
+        },
+        submitLoginIfProvided() {
+            if (this.fieldsNotEmpty()) {
+                this.submitLogin();
+            }
         }
     },
     async mounted() {

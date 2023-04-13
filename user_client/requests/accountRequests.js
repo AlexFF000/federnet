@@ -94,7 +94,13 @@ async function setPublicKey(publicKey) {
         if (response.code === RESPONSE_CODES.Success) {
             return "Success";
         } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
-            // TODO refresh token
+            // Refresh token
+            if (await getSession() === "Success"){
+                // Retry
+                return await setPublicKey(publicKey);
+            } else {
+                return response.errorMessage;
+            }
         }
     } else {
         return response.errorMessage;
@@ -143,7 +149,13 @@ async function sendDirectMessage(username, encryptedContent) {
         } else if (response.code === RESPONSE_CODES.UserNotFound) {
             return "UserNotFound";
         } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
-            // TODO refresh token
+            // Refresh token
+            if (await getSession() === "Success") {
+                // Retry
+                return await sendDirectMessage(username, encryptedContent);
+            } else {
+                return "GenericFailure";
+            }
         }
     } else {
         return "GenericFailure";
@@ -173,7 +185,14 @@ async function fetchDirectMessages(startTime=0, endTime) {
                 return response.data;
             }
         } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
-            // TODO Refresh token
+            // Refresh token
+            if (await getSession() === "Success") {
+                // Retry
+                return await fetchDirectMessages(startTime, endTime);
+            } else {
+                console.log("Unable to fetch direct messages.  Access denied");
+                return [];
+            }
         }
     }
 

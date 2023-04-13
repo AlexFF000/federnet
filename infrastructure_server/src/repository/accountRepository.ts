@@ -14,6 +14,9 @@ export async function addAccount(account : Account): Promise<boolean> {
         let database: Db = (await MongoConnection.getInstance()).database;
         let collection: Collection = database.collection(accountsCollection);
 
+        // Create index on username if it doesn't already exist
+        collection.createIndex({ username: 1 });  // 1= Ascending index
+
         await collection.insertOne(account);
 
         log.debug(`Added account ${account.username}`);

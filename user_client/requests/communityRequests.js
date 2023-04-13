@@ -3,6 +3,7 @@
 const { sendRequest } = require("./sender.js");
 const { ENDPOINTS, RESPONSE_CODES } = require("../constants.js");
 const ConnectionParamsSingleton = require("../ConnectionParamsSingleton.js");
+const { getSession } = require("./accountRequests.js");
 
 async function pingServer(address) {
     // Send ping request to community server and check if correct pong response received
@@ -44,7 +45,14 @@ async function fetchPosts(address, startTime=0, endTime) {
                 return response.data;
             }
         } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
-            // TODO Refresh token
+            // Refresh token
+            if (await getSession() === "Success") {
+                // Retry
+                return await fetchPosts(address, startTime, endTime);
+            } else {
+                console.log("Unable to fetch posts.  Access denied");
+                return [];
+            }
         }
     }
 
@@ -71,7 +79,14 @@ async function createPost(address, content) {
         if (response.code === RESPONSE_CODES.Success) {
             return "Success";
         } else if (response.code === RESPONSE_CODES.UnauthorisedUserRequest) {
-            // TODO Refresh token
+            // Refresh token
+            if (await getSession() === "Success") {
+                // Retry
+                return await createPost(address, content);
+            } else {
+                console.log("Failed to send post.  Access denied");
+                return "Failed to send post";
+            }
         }
     }
     return "Failed to send post";

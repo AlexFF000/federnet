@@ -7,41 +7,41 @@ import DirectMessagesButton from "../components/DirectMessagesButton.vue";
         <div id="posts-sidebar-container" class="posts-sidebar-container">
             <div id="posts-sidebar" class="posts-sidebar">
                 <div id="find-community-button-section" class="find-community-button-section">
-                    <div id="find-community-button" class="sidebar-link" @click="findCommunity()">Find Community</div>
+                    <div id="find-community-button" class="sidebar-link" @click="findCommunity()" @keyup.enter="findCommunity()" tabindex="3">Find Community</div>
                 </div>
                 <div class="pinned-communities-heading">
                     Pinned communities
                 </div>
                 <div id="pinned-communities">
-                    <ul class="pinned-communities-list" ref="pinnedCommunitiesList">
-                        <li class="sidebar-list-item sidebar-link" v-for="(name, address) in pinnedCommunties" @click="changeActiveServer(address, name)">
+                    <ul class="pinned-communities-list" ref="pinnedCommunitiesList" @keyup.down="scrollCommunitiesDownWithKeyboard" @keyup.up="scrollCommunitiesUpWithKeyboard" tabindex="4">
+                        <li class="sidebar-list-item sidebar-link" v-for="(name, address) in pinnedCommunties" @click="changeActiveServer(address, name)" @keyup.enter="changeActiveServer(address, name)" tabindex="-1">
                             {{ name }}
                         </li>
                     </ul>
                 </div>
                 <div id="log-out-button-section" class="log-out-button-section">
-                    <input id="log-out-button" type="button" class="form-submit-button button-secondary" value="Log out" @click="logOut"/>
+                    <input id="log-out-button" type="button" class="form-submit-button button-secondary" value="Log out" @click="logOut" tabindex="5"/>
                 </div>
             </div>
         </div>
         <div id="nav-buttons-container" class="nav-buttons-container">
             <div id="settings-button-icon" >
-                <SettingsButton/>
+                <SettingsButton tabindex="2"/>
             </div>
             <div id="direct-messages-button-icon">
-                <DirectMessagesButton/>
+                <DirectMessagesButton tabindex="1"/>
             </div>
         </div>
         <div id="posts-section" class="posts-section">
             <div class="pin-community-button-container">
-                <input id="pin-community-button" type="button" class="form-submit-button pin-community-button" value="Pin community" ref="togglePinnedButton" @click="toggleCommunityPinned" :disabled="!aCommunityIsSelected()"/>
+                <input id="pin-community-button" type="button" class="form-submit-button pin-community-button" value="Pin community" ref="togglePinnedButton" @click="toggleCommunityPinned" :disabled="!aCommunityIsSelected()" tabindex="7"/>
             </div>
-            <div id="posts-area" class="posts-area" ref="postsArea" @scroll="handlePostsScrolled">
+            <div id="posts-area" class="posts-area" ref="postsArea" @scroll="handlePostsScrolled" tabindex="6">
                 <!-- The area where the posts are displayed -->
             </div>
             <div id="post-creation-container" class="post-creation-container">
-                <input id="new-post-textbox" type="text" class="text-input-box new-post-textbox" v-model="newPostContent" @keyup.enter="sendPost" :disabled="!aCommunityIsSelected()"/>
-                <input id="new-post-submit" type="button" class="form-submit-button new-post-submit" value="Send" @click="sendPost" :disabled="!aCommunityIsSelected()"/>
+                <input id="new-post-textbox" type="text" class="text-input-box new-post-textbox" v-model="newPostContent" @keyup.enter="sendPost" :disabled="!aCommunityIsSelected()" tabindex="8"/>
+                <input id="new-post-submit" type="button" class="form-submit-button new-post-submit" value="Send" @click="sendPost" :disabled="!aCommunityIsSelected()" tabindex="9"/>  
             </div>
         </div>
     </div>
@@ -95,7 +95,8 @@ export default {
             newPostContent: "",
             pinnedCommunties: {},
             currentCommunityAddress: "",
-            currentCommunityName: ""
+            currentCommunityName: "",
+            selectedCommunityListItem: null
         }
     },
     methods: {
@@ -177,6 +178,31 @@ export default {
             // Clear session info and return to the login page
             await window.api.logOut();
             this.$router.push({ name: "welcomeLogIn" });
+        },
+        scrollCommunitiesDownWithKeyboard() {
+            // Scroll down through list of communities with keyboard
+            if (this.selectedCommunityListItem === null) {
+                this.selectedCommunityListItem = 0;
+            } else if (this.selectedCommunityListItem < Object.keys(this.pinnedCommunties).length - 1) {
+                this.selectedCommunityListItem++;
+            } else {
+                // Scrolled all the way to the bottom, jump back to the top
+                this.selectedCommunityListItem = 0;
+            }
+
+            // Give focus to selected item
+            this.$refs.pinnedCommunitiesList.children[this.selectedCommunityListItem].focus();
+        },
+        scrollCommunitiesUpWithKeyboard() {
+            // Scroll up through list of communities with keyboard
+            if (this.selectedCommunityListItem === null || this.selectedCommunityListItem === 0) {
+                this.selectedCommunityListItem = Object.keys(this.pinnedCommunties).length - 1;
+            } else {
+                this.selectedCommunityListItem--;
+            }
+
+            // Give focus to selected item
+            this.$refs.pinnedCommunitiesList.children[this.selectedCommunityListItem].focus();
         }
     },
     async mounted() {

@@ -22,7 +22,15 @@ const createWindow = () => {
   });
 
   win.loadFile('./vue/dist/index.html');
+
+  if (process.platform !== "darwin") {
+    win.setMenuBarVisibility(false);  // Hide menu bar at the top
+  }
 };
+
+if (process.platform === "darwin") {
+  app.dock.hide();  // Hide menu bar at the top (on Mac OS)
+}
 
 app.whenReady().then(() => {
   createWindow();

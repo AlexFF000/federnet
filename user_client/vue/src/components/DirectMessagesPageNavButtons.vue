@@ -7,10 +7,10 @@ import SettingsButton from "../components/SettingsButton.vue";
     <!-- As the Direct Messages page contains 3 different pages that are swapped out as needed, we would need to repeat the markup for the back and settings buttons 3 times.  Instead do it once here and import it as a component -->
     <div class="nav-buttons-container">
         <div class="back-arrow-container">
-            <BackArrow previousPage="posts"/>
+            <BackArrow previousPage="posts" tabindex="1"/>
         </div>
         <div class="settings-button-container">
-            <SettingsButton/>
+            <SettingsButton tabindex="2"/>
         </div>
     </div>
 </template>
