@@ -3,7 +3,8 @@
 */
 
 import inquirer from 'inquirer';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import { dirname } from 'path';
 
 import * as dotenv from 'dotenv';
 dotenv.config({ path: './community_server/.env'});
@@ -67,6 +68,12 @@ async function writeCommunityFile(communityInfo: ICommunityInfo) {
         try {
             log.info("Writing info to community file");
             let json = JSON.stringify(communityInfo);
+
+            // Create data directory if it doesn't already exist
+            await mkdir(dirname(process.env.COMMUNITY_DATA_FILE), {
+                recursive: true
+            });
+            // Write to file
             await writeFile(process.env.COMMUNITY_DATA_FILE, json, {
                 encoding: "utf8"
             })

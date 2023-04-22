@@ -144,7 +144,7 @@ export default {
                 && this.password.trim() !== "";
         },
         redirectToCreateAccountPage() {
-            this.$router.push({ name: "createAccount", params: { previousPage: "welcomeLogIn" } });
+            this.$router.push({ name: "createAccount", params: { previousPage: "welcomeLogIn", typedServerAddress: this.infrastructureServer } });
         },
         submitLoginIfProvided() {
             if (this.fieldsNotEmpty()) {
