@@ -128,6 +128,9 @@ export default {
                 this.submitSignup();
             }
         }
+    },
+    mounted() {
+        this.infrastructureServer = this.$route.params.typedServerAddress;
     }
 }
 </script>

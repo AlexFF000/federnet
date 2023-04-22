@@ -25,7 +25,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/createAccount/:previousPage',
+      path: '/createAccount/:previousPage:typedServerAddress',
       name: 'createAccount',
       component: CreateAccountView,
       meta: {

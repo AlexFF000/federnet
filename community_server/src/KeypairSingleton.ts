@@ -4,9 +4,10 @@
 import * as dotenv from 'dotenv';
 import { createPrivateKey, createPublicKey, generateKeyPair, KeyObject } from 'crypto';
 import { promisify } from 'util';
+import { readFile, writeFile, copyFile, mkdir } from 'fs/promises';
+import { dirname } from 'path';
 
 import log from './log.js';
-import { readFile, writeFile, copyFile } from 'fs/promises';
 
 dotenv.config({ path: './community_server/.env' });
 
@@ -112,6 +113,12 @@ class KeypairSingleton {
     public async updateKeys(publicKey: string, privateKey: string) {
         try {
             log.info(`Writing new private key to ${this.privKeyPath}`);
+
+            // Make sure directory exists
+            await mkdir(dirname(this.privKeyPath), {
+                recursive: true
+            });
+            
             // Write private key to file
             await writeFile(this.privKeyPath, privateKey, {
                 flag: "w",

@@ -46,4 +46,4 @@ server.register(communityRoutes);
 server.register(directMessageRoutes);
 server.register(publicKeyRoute);
 
-server.listen({ port: port });
+server.listen({ port: port, host: "0.0.0.0" });

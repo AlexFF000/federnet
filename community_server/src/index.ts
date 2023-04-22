@@ -61,6 +61,6 @@ const server = fastify({
 server.register(pingRoute);
 server.register(postRoutes);
 
-server.listen({ port: port });
+server.listen({ port: port, host: "0.0.0.0" });
 
 await startCLI();
