@@ -130,7 +130,7 @@ export default {
         }
     },
     mounted() {
-        this.infrastructureServer = this.$route.params.typedServerAddress;
+        this.infrastructureServer = this.$route.params.typedServerAddress ? this.$route.params.typedServerAddress : "";
     }
 }
 </script>
